@@ -50,7 +50,7 @@ access_token:
 
 一旦检测到access_token过期，需要使用refresh_token再次获取refresh_token
 
-注意，这一切都是在token无法被重放时可行，如果token可重放，则所有的有效被刷新的token都需要一个blacklist确定是否无效
+注意，这一切都是在token无法被重放时可行，如果token可重放，则所有的有效被刷新的token都需要一个blacklist确定是否无效。如果是对外提供服务，即非自身把控的app，则需要防止重放攻击。所以，必须防止重放攻击，应该使用blacklist
 
 ### refresh_token
 
@@ -60,6 +60,7 @@ access_token:
     },
     "body": {
         "iss": "app.navyd.cn",
+        "jti": "unique id",
         "aud": "web app",
         "iat": "now",
         "exp": "7 day",
