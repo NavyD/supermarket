@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.navyd.app.supermarket.user.UserDao">
+	<cache eviction="LRU" size="1024" readOnly="true" />
+
+	<resultMap id="BaseResultMap" type="userDO">
+		<id column="id" jdbcType="INTEGER" property="id" />
+		<result column="username" jdbcType="VARCHAR" property="username" />
+		<result column="hash_password" jdbcType="CHAR" property="hashPassword" />
+		<result column="icon_path" jdbcType="VARCHAR" property="iconPath" />
+		<result column="email" jdbcType="VARCHAR" property="email" />
+		<result column="is_enabled" jdbcType="TINYINT" property="enabled" />
+		<result column="phone_number" jdbcType="CHAR" property="phoneNumber" />
+		<result column="role_id" jdbcType="INTEGER" property="roleId" /> 
+		<result column="gmt_create" jdbcType="TIMESTAMP" property="gmtCreate" />
+		<result column="gmt_modified" jdbcType="TIMESTAMP"
+			property="gmtModified" />
+	</resultMap>
+
+	<sql id="Base_Column_List">
+		id, username, hash_password, icon_path, email, is_enabled,
+		phone_number,
+		role_id,
+		gmt_create, gmt_modified
+	</sql>
+
+	<select id="getByPrimaryKey" parameterType="java.lang.Integer"
+		resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from user_info
+		where id = #{id,jdbcType=INTEGER}
+	</select>
+
+	<select id="listPage" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from user_info
+		<where>
+			<if test="lastId != null">id > #{lastId,jdbcType=INTEGER}</if>
+		</where>
+		<!-- 计算分页开始行位置 -->
+		<bind name="start" value="pageNum*pageSize"/>
+		 limit #{start}, #{pageSize}
+	</select>
+	
+	<select id="countTotalRows" resultType="_int">
+		select count(*)
+		from user_info
+	</select>
+
+	<!-- 动态保存 可能为null的字段 -->
+	<insert id="save" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO user_info
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			username,
+			hash_password,
+			<if test="iconPath != null">icon_path,</if>
+			email,
+			<if test="enabled != null">is_enabled,</if>
+			<if test="phoneNumber != null">phone_number,</if>
+			role_id
+		</trim>
+		VALUES
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			#{username,jdbcType=VARCHAR},
+			#{hashPassword,jdbcType=CHAR},
+			<if test="iconPath != null">#{iconPath,jdbcType=VARCHAR},</if>
+			#{email,jdbcType=VARCHAR},
+			<if test="enabled != null">#{enabled,jdbcType=TINYINT},</if>
+			<if test="phoneNumber != null">#{phoneNumber,jdbcType=CHAR},</if>
+			#{roleId,jdbcType=INTEGER},
+		</trim>
+	</insert>
+
+	<update id="updateByPrimaryKey">
+		update user_info
+		<set>
+			<if test="username != null">
+				username = #{username,jdbcType=VARCHAR},
+			</if>
+			<if test="hashPassword != null">
+				hash_password = #{hashPassword,jdbcType=CHAR},
+			</if>
+			<if test="iconPath != null">
+				icon_path = #{iconPath,jdbcType=VARCHAR},
+			</if>
+			<if test="email != null">
+				email = #{email,jdbcType=VARCHAR},
+			</if>
+			<if test="enabled != null">
+				is_enabled = #{enabled,jdbcType=TINYINT},
+			</if>
+			<if test="phoneNumber != null">
+				phone_number = #{phoneNumber,jdbcType=CHAR},
+			</if>
+			<if test="roleId != null">
+				role_id = #{roleId,jdbcType=INTEGER},
+			</if>
+		</set>
+		where id = #{id,jdbcType=INTEGER}
+	</update>
+
+	<delete id="removeByPrimaryKey">
+		delete from user_info
+		where id =
+		#{id,jdbcType=INTEGER}
+	</delete>
+</mapper>
