@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<project
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+	xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>cn.navyd</groupId>
+		<artifactId>supermarket</artifactId>
+		<version>1.0-SNAPSHOT</version>
+	</parent>
+
+	<artifactId>supermarket-restful-web</artifactId>
+	<packaging>war</packaging>
+
+	<name>supermarket-service Maven Webapp</name>
+	<url>http://maven.apache.org</url>
+
+	<dependencies>
+		<dependency>
+			<groupId>cn.navyd</groupId>
+			<artifactId>supermarket-common</artifactId>
+		</dependency>
+		<!-- 用于在浏览器环境测试时使用 -->
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<finalName>supermarket-restful-web</finalName>
+		<plugins>
+			
+		</plugins>
+	</build>
+</project>

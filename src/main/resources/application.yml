@@ -1,0 +1,46 @@
+spring:
+  profiles: 
+    active: development
+  datasource:
+    hikari: # 配置hikari 数据库连接池
+      maximum-pool-size: 30
+      minimum-idle: 10
+      auto-commit: false
+      connection-timeout: 10000
+  security:
+    user:
+      password: 1234
+
+server:
+  port: 8443
+  ssl:
+    enabled: true
+    key-store-type: JKS
+    key-store: classpath:keystore.jks
+    key-store-password: 123456
+    key-alias: tomcat
+
+      
+logging:
+  level: 
+    cn.navyd.app.supermarket: debug
+    cn.navyd.app.supermarket.util.BeanUtils: info
+
+mysql: 
+  datasource: 
+    url: jdbc:mysql://192.168.43.219:3306/supermarket_new
+    username: root
+    password: 1234
+    character-encoding: utf8
+    use-ssl: false
+    server-timezone: Asia/Shanghai
+    cache-prep-stmts: true
+    prep-stmt-cache-size: 250
+    prep-stmt-cache-sql-limit: 2048
+    use-server-prep-stmts: true
+    use-local-session-state: true
+    rewrite-batched-statements: true
+    cache-result-set-metadata: true
+    cache-server-configuration: true
+    elide-set-auto-commits: true
+    maintain-time-stats: false
