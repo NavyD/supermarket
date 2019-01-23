@@ -11,4 +11,6 @@ public interface UserDao extends BaseDao<UserDO> {
      * @return
      */
     UserDO getByUsername(String username);
+    
+    UserDO getByEmail(String email);
 }

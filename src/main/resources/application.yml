@@ -29,3 +29,13 @@ mysql:
     cache-server-configuration: true
     elide-set-auto-commits: true
     maintain-time-stats: false
+
+email:
+  address: 362003047@qq.com
+  password: csmxvfebbkembgga
+  username: navyd
+  debug: true
+  host: smtp.qq.com
+  port: 25
+  session-timeout: 5000
+  

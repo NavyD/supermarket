@@ -8,7 +8,7 @@ import lombok.ToString;
 @Data
 @EqualsAndHashCode(callSuper=true)
 @ToString(callSuper=true)
-public class UserDO extends BaseDO {
+public class UserDO extends BaseDO implements User {
     /**
      * 
      */
@@ -28,6 +28,8 @@ public class UserDO extends BaseDO {
 
     private Integer roleId;
     
+    private Integer failedCount;
+    
     public static UserDO ofSavable(String username, String hashPassword, String email, Integer roleId) {
         UserDO user = new UserDO();
         user.setEmail(email);
@@ -35,5 +37,15 @@ public class UserDO extends BaseDO {
         user.setUsername(username);
         user.setRoleId(roleId);
         return user;
+    }
+
+    @Override
+    public String getPassword() {
+      return hashPassword;
+    }
+
+    @Override
+    public boolean isEnabled() {
+      return enabled;
     }
 }
