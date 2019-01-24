@@ -16,4 +16,10 @@ public interface SecureCodeService<K, V> {
    * @param user
    */
   void sendCode(User user);
+  
+  /**
+   * 通过key移除存在的code
+   * @param key
+   */
+  void removeCode(K key);
 }

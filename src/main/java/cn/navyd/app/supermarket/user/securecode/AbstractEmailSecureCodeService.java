@@ -28,6 +28,13 @@ public abstract class AbstractEmailSecureCodeService implements SecureCodeServic
     String code = doSendCode(user);
     cache.put(user.getId(), code);
   }
+  
+  @Override
+  public void removeCode(Integer key) {
+    Objects.requireNonNull(key);
+    if (getCode(key).isPresent())
+      cache.invalidate(key);
+  }
 
   /**
    * code保存时间

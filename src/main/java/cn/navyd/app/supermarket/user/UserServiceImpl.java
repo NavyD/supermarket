@@ -118,6 +118,8 @@ public class UserServiceImpl extends AbstractBaseService<UserDao, UserDO> implem
       throw new IncorrectSecureCodeException("userId: " + id + ", code: " + registeredCode);
     if (existingUser.getEnabled())
       throw new ServiceException("用户账户已激活。user: " + existingUser);
+    // 移除注册码
+    emailRegisterService.removeCode(id);
     // 激活账户
     UserDO updateUser = new UserDO();
     updateUser.setId(id);
@@ -149,6 +151,8 @@ public class UserServiceImpl extends AbstractBaseService<UserDao, UserDO> implem
     // 重置码是否正确
     if (!code.get().equals(resetCode))
       throw new IncorrectSecureCodeException("userId: " + id + ", code: " + resetCode);
+    // 移除重置码
+    emailForgotPasswordService.removeCode(id);
     // 重置密码
     return resetPassword0(existingUser, user.getNewPassword());
   }
