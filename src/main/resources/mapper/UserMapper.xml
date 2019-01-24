@@ -11,6 +11,7 @@
 		<result column="email" jdbcType="VARCHAR" property="email" />
 		<result column="is_enabled" jdbcType="TINYINT" property="enabled" />
 		<result column="phone_number" jdbcType="CHAR" property="phoneNumber" />
+		<result column="failed_count" jdbcType="INTEGER" property="failedCount" /> 
 		<result column="role_id" jdbcType="INTEGER" property="roleId" /> 
 		<result column="gmt_create" jdbcType="TIMESTAMP" property="gmtCreate" />
 		<result column="gmt_modified" jdbcType="TIMESTAMP"
@@ -19,7 +20,7 @@
 
 	<sql id="Base_Column_List">
 		id, username, hash_password, icon_path, email, is_enabled,
-		phone_number,
+		phone_number, failed_count,
 		role_id,
 		gmt_create, gmt_modified
 	</sql>
@@ -30,6 +31,20 @@
 		<include refid="Base_Column_List" />
 		from user_info
 		where id = #{id,jdbcType=INTEGER}
+	</select>
+	
+	<select id="getByUsername" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from user_info
+		where username = #{username,jdbcType=VARCHAR}
+	</select>
+	
+	<select id="getByEmail" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from user_info
+		where email = #{email,jdbcType=VARCHAR}
 	</select>
 
 	<select id="listPage" resultMap="BaseResultMap">
@@ -48,6 +63,14 @@
 		select count(*)
 		from user_info
 	</select>
+	
+	<select id="countRowsByLastId" resultType="_int">
+		select count(*)
+		from user_info 
+		<where>
+			<if test="lastId != null">id > #{lastId,jdbcType=INTEGER}</if>
+		</where>
+	</select>
 
 	<!-- 动态保存 可能为null的字段 -->
 	<insert id="save" useGeneratedKeys="true" keyProperty="id">
@@ -59,6 +82,7 @@
 			email,
 			<if test="enabled != null">is_enabled,</if>
 			<if test="phoneNumber != null">phone_number,</if>
+			<if test="failedCount != null">failed_count,</if>
 			role_id
 		</trim>
 		VALUES
@@ -69,6 +93,7 @@
 			#{email,jdbcType=VARCHAR},
 			<if test="enabled != null">#{enabled,jdbcType=TINYINT},</if>
 			<if test="phoneNumber != null">#{phoneNumber,jdbcType=CHAR},</if>
+			<if test="failedCount != null">#{failedCount,jdbcType=TINYINT},</if>
 			#{roleId,jdbcType=INTEGER},
 		</trim>
 	</insert>
@@ -93,6 +118,9 @@
 			</if>
 			<if test="phoneNumber != null">
 				phone_number = #{phoneNumber,jdbcType=CHAR},
+			</if>
+			<if test="failedCount != null">
+				failed_count = #{failedCount,jdbcType=TINYINT},
 			</if>
 			<if test="roleId != null">
 				role_id = #{roleId,jdbcType=INTEGER},

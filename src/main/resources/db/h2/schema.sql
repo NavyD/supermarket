@@ -8,6 +8,7 @@ create table user_info (
     email varchar(100) not null,
     is_enabled tinyint unsigned not null default 1,
     phone_number char(15),
+    failed_count tinyint unsigned not null default 0,
     role_id int unsigned not null,
     gmt_create DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     gmt_modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP

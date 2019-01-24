@@ -1,187 +1,173 @@
 package cn.navyd.app.supermarket.user;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import java.util.Random;
-import org.junit.jupiter.api.BeforeEach;
+import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
-import cn.navyd.app.supermarket.BaseTest;
-import cn.navyd.app.supermarket.util.SecurityUtils;
+import cn.navyd.app.supermarket.BaseDaoTest;
+import cn.navyd.app.supermarket.util.PageUtil;
 
-public class UserDaoTest extends BaseTest {
+public class UserDaoTest extends BaseDaoTest {
   @Autowired
   private UserDao userDao;
-  private final Random rand = new Random();
-  private UserDO firstUser;
+  static final String[] NULLABLE_PROPERTIES = {"iconPath", "phoneNumber"};
+  // 测试数据 默认
+  private final int id = 1;
+  private final String username = "测试用户";
+  private final String email = "aabb@cc.dd";
+  private final int totalRows = 1;
   
-  @BeforeEach
-  void firstUser() {
-    int id = 1; 
-    var user = userDao.getByPrimaryKey(id);
-    assertThat(user)
-      .isNotNull()
-      .matches(u -> u.getId() == id);
-    this.firstUser = user;
-  }
-
   @Test
   public void getByPrimaryKeyBaseTest() {
-    final int id = 1;
     var user = userDao.getByPrimaryKey(id);
-    assertThat(user).isNotNull().hasNoNullFieldsOrPropertiesExcept(GET_USERDO_NULLABLE_PROPERTIES)
-        .matches(u -> u.getId() == id);
+    assertThat(user).isNotNull()
+      .matches(u -> u.getId() == id)
+      .hasNoNullFieldsOrPropertiesExcept(NULLABLE_PROPERTIES);
 
-    final int invalidId = rand.nextInt() * -1;
+    int invalidId = -1;
     user = userDao.getByPrimaryKey(invalidId);
     assertThat(user).isNull();
+    
+    invalidId = Integer.MAX_VALUE;
+    user = userDao.getByPrimaryKey(invalidId);
+    assertThat(user).isNull();
+  }
+  
+  @Test
+  void getByUsernameTest() {
+    assertThat(userDao.getByUsername(username))
+      .isNotNull()
+      .hasNoNullFieldsOrProperties()
+      .matches(u -> u.getUsername().equals(username));
+  }
+  
+  @Test
+  void getByEmailTest() {
+    assertThat(userDao.getByEmail(email))
+      .isNotNull()
+      .hasNoNullFieldsOrProperties()
+      .matches(u -> u.getEmail().equals(email));
+  }
+  
+  @Test
+  public void countTotalRowsTest() {
+    assertThat(userDao.countTotalRows()).matches(count -> count == totalRows);
+  }
+  
+  @Test
+  public void countRowsByLastIdTest() {
+    // 测试数据为连续的
+    final int lastId = 1, remainder = totalRows - lastId;
+    assertThat(userDao.countRowsByLastId(lastId)).matches(count -> count == remainder);
   }
 
   @Test
   public void listPageTest() {
-    int pageSize = 10;
+    int pageSize = 5;
     int pageNum = 0;
+    int expectedSize = PageUtil.calculateCurrentPageSize(totalRows, pageNum, pageSize);
     var users = userDao.listPage(pageNum, pageSize, null);
     assertThat(users)
       .isNotNull()
       .isNotEmpty()
-      .doesNotContainNull()
-      .hasSize(pageSize)
-      .startsWith(firstUser);
+      .hasSize(expectedSize)
+      .doesNotContainNull();
 
-    // pageNum < 0
-    pageNum = -1;
-    pageSize = 2;
+    pageSize = Integer.MAX_VALUE;
+    pageNum = 0;
+    expectedSize = PageUtil.calculateCurrentPageSize(totalRows, pageNum, pageSize);
     users = userDao.listPage(pageNum, pageSize, null);
     assertThat(users)
       .isNotNull()
-      .doesNotContainNull()
-      .hasSize(pageSize);
-  }
-
-  @Test
-  public void countTotalRowsTest() {
-    int count = userDao.countTotalRows();
-    System.err.println(count);
-    // assertEquals(userDao.listAll().size(), count);
+      .isNotEmpty()
+      .hasSize(expectedSize)
+      .doesNotContainNull();
   }
   
   @Transactional
   @Test
   public void saveBaseTest() {
-    var user = getUserByRandom();
+    var user = getWholeUser();
     assertThat(user)
       .isNotNull()
-      .matches(u -> u.getId()==null);
-
+      .hasNoNullFieldsOrProperties();
+    user.setId(null);
+    
     userDao.save(user);
 
     var id = user.getId();
     var savedUser = userDao.getByPrimaryKey(id);
+    
     assertThat(savedUser)
       .isNotNull()
-      .hasNoNullFieldsOrPropertiesExcept(GET_USERDO_NULLABLE_PROPERTIES)
-      .matches(u ->{
-        return u.getId() == savedUser.getId(); 
-      })
-      ;
+      .hasNoNullFieldsOrProperties()
+      .isEqualToIgnoringGivenFields(user, BASE_PROPERTIES);
   }
 
   @Transactional
   @Test
   public void updateByPrimaryKeyTest() {
-    int id = 2;
-    var existedUser = userDao.getByPrimaryKey(id);
-    assertNotNull(existedUser);
+    var existingUser = userDao.getByPrimaryKey(id);
+    assertThat(existingUser).isNotNull();
 
-    var updateUser = getWholeUserByRandom();
+    var updateUser = getWholeUser();
     updateUser.setId(id);
+    updateUser.setGmtCreate(existingUser.getGmtCreate());
 
     userDao.updateByPrimaryKey(updateUser);
 
-    var updatedUser = userDao.getByPrimaryKey(id);
-    assertThat(updatedUser)
+    assertThat(userDao.getByPrimaryKey(id))
       .isNotNull()
       .hasNoNullFieldsOrProperties()
-      .matches(user -> user.getId().equals(id));
+      .isEqualToIgnoringGivenFields(updateUser, BASE_PROPERTIES[2]);
   }
 
   @Transactional
   @Test
   public void removeByPrimaryKeyTest() {
-    int id = 2;
-    assertThat(userDao.getByPrimaryKey(id))
-      .isNotNull()
-      .matches(user -> user.getId().equals(id));
+    assertThat(userDao.getByPrimaryKey(id)).isNotNull();
     userDao.removeByPrimaryKey(id);
     assertThat(userDao.getByPrimaryKey(id)).isNull();
-  }
-
-  // 完整性检查。插入完整的user获取是否完整
-  @Transactional
-  @Test
-  public void getByPrimaryKeyWholeTest() {
-    var user = getWholeUserByRandom();
-    assertThat(user)
-      .isNotNull()
-      .hasNoNullFieldsOrPropertiesExcept(BASEDO_PROPERTIES)
-      .matches(u -> u.getId() == null);
-
-    userDao.save(user);
-
-    assertNotNull(user.getId());
-    var id = user.getId();
-
-    var savedUser = userDao.getByPrimaryKey(id);
-
-    assertNotNull(savedUser);
   }
 
   @Transactional
   @Test
   public void getByPrimaryKeyCacheTest() {
-    int id = 2;
     var user = userDao.getByPrimaryKey(id);
-    assertNotNull(user);
-    String formerUsername = user.getUsername();
+    assertThat(user).isNotNull();
     // 修改 username 将会导致 局部缓存被修改
-    user.setUsername("" + rand.nextInt(100000));
-    assertNotEquals(formerUsername, user.getUsername());
-    var cachedUser = userDao.getByPrimaryKey(id);
+    String newUsername = getTestData("测试");
+    user.setUsername(newUsername);
     // 缓存被修改
-    assertNotEquals(formerUsername, cachedUser.getUsername());
+    assertThat(userDao.getByPrimaryKey(id))
+      .matches(u -> u.getUsername().equals(newUsername));
   }
 
-  private UserDO getUserByRandom() {
-    String username = "测试者_" + rand.nextInt(100000);
-    String password = "1234";
-    String email = rand.nextInt(1000000000) + "@a.com";
-    int roleId = rand.nextInt(100);
-    return UserDO.ofSavable(username, password, email, roleId);
-  }
-
-  /**
-   * 获取完整随机属性的user对象。BaseDO中的属性不会设置
-   * 
-   * @return
-   */
-  private UserDO getWholeUserByRandom() {
-    String username = "测试者_" + rand.nextInt(100000);
-    String password = "" + rand.nextInt(100000);
-    String email = rand.nextInt(1000000000) + "@a.com";
-    int roleId = rand.nextInt(100);
-    String phoneNumber = "" + rand.nextInt(100000000);
-    String icon = "/" + rand.nextInt(100000000);
+  private UserDO getWholeUser() {
+    String username = getTestData("测试用户");
+    String password = getTestData("1234");
+    String email = getTestData("email@aa.com");
+    String phoneNumber = getTestData("00010");
+    String icon = getTestData("/test/1");
+    boolean enabled = true;
+    int failedCount = 1;
+    int roleId = Integer.MAX_VALUE;
+    int id = Integer.MAX_VALUE;
+    LocalDateTime now = LocalDateTime.now();
     var user = new UserDO();
+    user.setId(id);
     user.setEmail(email);
-    user.setEnabled(rand.nextBoolean());
-    user.setHashPassword(SecurityUtils.md5(password));
+    user.setEnabled(enabled);
+    user.setHashPassword(password);
     user.setIconPath(icon);
     user.setPhoneNumber(phoneNumber);
     user.setRoleId(roleId);
     user.setUsername(username);
+    user.setEnabled(enabled);
+    user.setFailedCount(failedCount);
+    user.setGmtCreate(now);
+    user.setGmtModified(now);
     return user;
   }
 }

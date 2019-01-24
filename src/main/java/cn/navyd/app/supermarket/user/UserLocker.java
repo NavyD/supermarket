@@ -17,7 +17,7 @@ public interface UserLocker {
    */
   public static final int BASE_LOGIN_LIMIT_SECOND = 30;
   
-  int getFailedCount();
+  Integer getFailedCount();
   
   /**
    * 获取用户被锁定的时间。在超过限制次数时该方法的返回值应该不变，否则可能导致锁定时间不准确（变长）

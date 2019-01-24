@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import java.lang.reflect.Field;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -49,5 +50,8 @@ public class UserServiceImplTest {
         verify(userDao, never()).getByUsername(isNull());
         verify(userDao).getByUsername(username);
 //        verify(userDao, never()).getByUsername(isNull());
+    }
+    
+    public static void main(String[] args) throws Exception {
     }
 }

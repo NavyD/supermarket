@@ -11,6 +11,13 @@ public interface ReadOnlyDao<T extends PrimaryKey> {
   int countTotalRows();
   
   /**
+   * 返回大于lastId的数量。用于{@link #listPage(Integer, Integer, Integer)}lastId != null时计算剩余的分页数量
+   * @param lastId
+   * @return
+   */
+  int countRowsByLastId(@Param("lastId") Integer lastId);
+  
+  /**
    * 通过主键id获取指定对象信息。如果不存在则返回null。
    * <p>该方法返回的对象不允许修改，否则将导致缓存异常。
    * @param id

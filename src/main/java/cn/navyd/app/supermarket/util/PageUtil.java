@@ -1,5 +1,7 @@
 package cn.navyd.app.supermarket.util;
 
+import static com.google.common.base.Preconditions.*;
+
 public class PageUtil {
     public static final String PAGE_NUMBER_MIN_VALUE = "0";
     
@@ -59,5 +61,29 @@ public class PageUtil {
         if (totalPages * pageSize != totalRows);
             totalPages++;
         return totalPages;
+    }
+    
+    /**
+     * 计算当前分页的大小。
+     * @param totalRows
+     * @param pageSize
+     * @param pageNum
+     * @return
+     */
+    public static int calculateCurrentPageSize(int totalRows, int pageNum, int pageSize) {
+      checkArgument(totalRows >= 0, "非法的totalRows: %s", totalRows);
+      checkArgument(pageNum >= 0);
+      checkArgument(pageSize >= 0);
+      checkArgument(pageSize * pageNum >= 0, "过大的分页参数.pageSize:%s, pageNum: %s", pageSize, pageNum);
+      int currentSize = pageSize;
+      if ((pageNum + 1) * pageSize > totalRows) {
+        int rows = pageSize * pageNum;
+        currentSize = totalRows - rows;
+      }
+      return currentSize;
+    }
+    
+    public static void main(String[] args) {
+      calculateCurrentPageSize(-1, 0, 0);
     }
 }

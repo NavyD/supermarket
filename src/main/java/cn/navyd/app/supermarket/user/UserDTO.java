@@ -59,7 +59,7 @@ public class UserDTO implements UserDetails, UserLocker {
   }
 
   @Override
-  public int getFailedCount() {
+  public Integer getFailedCount() {
     return user.getFailedCount();
   }
 

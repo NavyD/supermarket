@@ -51,7 +51,7 @@ public class LoginedUser implements User, UserLocker {
   }
 
   @Override
-  public int getFailedCount() {
+  public Integer getFailedCount() {
     return user.getFailedCount();
   }
 

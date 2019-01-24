@@ -99,7 +99,7 @@ public class UserServiceImpl extends AbstractBaseService<UserDao, UserDO> implem
     // 更新
     UserDO updatedUser = updateByPrimaryKey(updateUser);
     // 发送激活邮件
-    emailRegisterService.sendCode(updatedUser);
+    emailRegisterService.sendCode(GenericUser.of(updatedUser));
     return updatedUser;
   }
   
@@ -135,7 +135,7 @@ public class UserServiceImpl extends AbstractBaseService<UserDao, UserDO> implem
     if (!user.isPresent())
       throw new UserNotFoundException("email: " + email);
     // 发送邮件
-    emailForgotPasswordService.sendCode(user.get());
+    emailForgotPasswordService.sendCode(GenericUser.of(user.get()));
   }
   
   @Override
