@@ -1,6 +1,6 @@
 package cn.navyd.app.supermarket.config;
 
-import java.sql.SQLException;
+import java.sql.SQLException; 
 
 import javax.sql.DataSource;
 
@@ -13,7 +13,7 @@ import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 import org.springframework.stereotype.Component;
 
-import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
+import com.mysql.cj.jdbc.MysqlDataSource;
 import com.zaxxer.hikari.HikariDataSource;
 
 import lombok.Data;
