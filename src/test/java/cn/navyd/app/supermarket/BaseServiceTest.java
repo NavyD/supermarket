@@ -6,10 +6,10 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import cn.navyd.app.supermarket.config.SupermarketProfiles;
 
-//@ExtendWith(SpringExtension.class)
-//@SpringBootTest
-//@ActiveProfiles(profiles = SupermarketProfiles.DEVELOPMENT)
-public class BaseTest {
+@ExtendWith(SpringExtension.class)
+@SpringBootTest
+@ActiveProfiles(profiles = SupermarketProfiles.DEVELOPMENT)
+public class BaseServiceTest {
 
   protected final String[] BASEDO_PROPERTIES = {"id", "gmtCreate", "gmtModified"};
 

@@ -170,4 +170,5 @@ public class UserDaoTest extends BaseDaoTest {
     user.setGmtModified(now);
     return user;
   }
+  
 }

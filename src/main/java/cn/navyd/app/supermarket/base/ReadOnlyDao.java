@@ -1,9 +1,8 @@
 package cn.navyd.app.supermarket.base;
 
 import java.util.Collection;
-import org.apache.ibatis.annotations.Param;
 
-public interface ReadOnlyDao<T extends PrimaryKey> {
+public interface ReadOnlyDao<T extends BaseDO> {
   /**
    * 获取存在总数量
    * @return
@@ -15,7 +14,7 @@ public interface ReadOnlyDao<T extends PrimaryKey> {
    * @param lastId
    * @return
    */
-  int countRowsByLastId(@Param("lastId") Integer lastId);
+  int countRowsByLastId(Integer lastId);
   
   /**
    * 通过主键id获取指定对象信息。如果不存在则返回null。
@@ -40,6 +39,5 @@ public interface ReadOnlyDao<T extends PrimaryKey> {
    * @param lastId
    * @return
    */
-  Collection<T> listPage(@Param("pageNum") Integer pageNum, @Param("pageSize") Integer pageSize,
-          @Param("lastId") Integer lastId);
+  Collection<T> listPage(Integer pageNum, Integer pageSize, Integer lastId);
 }

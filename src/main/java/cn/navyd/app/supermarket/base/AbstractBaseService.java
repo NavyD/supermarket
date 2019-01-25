@@ -16,7 +16,7 @@ import cn.navyd.app.supermarket.util.PageUtil;
  * @param <T>
  * @param <E>
  */
-public abstract class AbstractBaseService<T extends BaseDao<E>, E extends PrimaryKey>
+public abstract class AbstractBaseService<T extends BaseDao<E>, E extends BaseDO>
     implements BaseService<E> {
   protected final T dao;
 

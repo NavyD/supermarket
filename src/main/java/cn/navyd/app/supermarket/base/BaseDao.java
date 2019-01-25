@@ -1,6 +1,6 @@
 package cn.navyd.app.supermarket.base;
 
-public interface BaseDao<T extends PrimaryKey> extends ReadOnlyDao<T> {
+public interface BaseDao<T extends BaseDO> extends ReadOnlyDao<T> {
     /**
      * 保存指定对象到数据库。
      * <p>该方法保存除BaseDO的字段的属性，其中的字段由数据库控制。对于存在默认值的字段，当置为null保存时，

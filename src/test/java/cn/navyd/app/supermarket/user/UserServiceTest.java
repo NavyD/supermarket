@@ -9,10 +9,10 @@ import java.util.Random;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
-import cn.navyd.app.supermarket.BaseTest;
+import cn.navyd.app.supermarket.BaseServiceTest;
 import cn.navyd.app.supermarket.util.SecurityUtils;
 
-public class UserServiceTest extends BaseTest {
+public class UserServiceTest extends BaseServiceTest {
     private final Random rand = new Random();
     @Autowired
     private UserService userService;

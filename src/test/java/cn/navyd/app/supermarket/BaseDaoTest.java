@@ -18,8 +18,8 @@ public class BaseDaoTest {
    */
   protected final String[] BASE_PROPERTIES = {"id", "gmtCreate", "gmtModified"};
   
-  protected static final String STRING_PREFIX = "_#";
-  protected static final String  STRING_SUFFIX= "#_";
+  protected static final String STRING_PREFIX = "_$";
+  protected static final String  STRING_SUFFIX= "$_";
   
   /**
    * 使用特殊前后缀组合数据。前后缀共4个字符
