@@ -1,5 +1,7 @@
 package cn.navyd.app.supermarket.base;
 
+import java.util.Collection;
+
 public interface BaseDao<T extends BaseDO> extends ReadOnlyDao<T> {
     /**
      * 保存指定对象到数据库。
@@ -21,4 +23,13 @@ public interface BaseDao<T extends BaseDO> extends ReadOnlyDao<T> {
      * @param id
      */
     void removeByPrimaryKey(Integer id);
+    
+    /**
+     * 保存所有bean对象。默认调用save实现。
+     * @param userRoles
+     */
+    default void saveAll(Collection<T> beans) {
+      for (T bean : beans)
+        save(bean);
+    }
 }

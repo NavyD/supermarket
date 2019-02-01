@@ -29,16 +29,16 @@ import cn.navyd.app.supermarket.user.securecode.SecureCodeNotFoundException;
 public class UserServiceImpl extends AbstractBaseService<UserDao, UserDO> implements UserService {
   @Autowired
   private PasswordEncoder passwordEncoder;
-  @Autowired
-  private EmailRegisterService emailRegisterService;
-  @Autowired
-  private EmailForgotPasswordService emailForgotPasswordService;
+  private final EmailRegisterService emailRegisterService;
+  private final EmailForgotPasswordService emailForgotPasswordService;
   private final ReadOnlyDao<RoleDO> roleDao;
   
   @Autowired
-  public UserServiceImpl(UserDao dao, ReadOnlyDao<RoleDO> roleDao) {
+  public UserServiceImpl(UserDao dao, ReadOnlyDao<RoleDO> roleDao, EmailRegisterService emailRegisterService, EmailForgotPasswordService emailForgotPasswordService) {
     super(dao);
     this.roleDao = roleDao;
+    this.emailForgotPasswordService = emailForgotPasswordService;
+    this.emailRegisterService = emailRegisterService;
   }
 
   @Override

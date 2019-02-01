@@ -3,11 +3,11 @@ package cn.navyd.app.supermarket.base.dao;
 import org.apache.ibatis.jdbc.SQL;
 import cn.navyd.app.supermarket.user.UserDO;
 
-public final class UserSqlProvider extends BaseSqlProvider<UserDO> {
+public final class UserSqlProvider extends AbstractSqlProvider<UserDO> {
   public static final String RESULT_MAP_ID = "userResultMap";
 
-  private static final String BASE_COLUMNS =
-      "id, username, hash_password, icon_path, email, is_enabled, phone_number, failed_count, role_id, gmt_create, gmt_modified";
+  private static final String EXTRA_COLUMNS =
+      "username, hash_password, icon_path, email, is_enabled, phone_number, failed_count, role_id";
   private static final String TABLE_NAME = "user_info";
 
   public String save(UserDO bean) {
@@ -91,8 +91,8 @@ public final class UserSqlProvider extends BaseSqlProvider<UserDO> {
   }
 
   @Override
-  protected String getBaseColumns() {
-    return BASE_COLUMNS;
+  protected String getExtraColumns() {
+    return EXTRA_COLUMNS;
   }
 
 }

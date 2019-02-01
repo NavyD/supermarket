@@ -87,7 +87,7 @@ public class UserDaoTest extends BaseDaoTest {
   
   @Transactional
   @Test
-  public void saveBaseTest() {
+  public void saveTest() {
     var user = getWholeUser();
     assertThat(user)
       .isNotNull()

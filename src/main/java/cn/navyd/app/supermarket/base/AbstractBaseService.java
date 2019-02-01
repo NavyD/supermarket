@@ -133,7 +133,7 @@ public abstract class AbstractBaseService<T extends BaseDao<E>, E extends BaseDO
    * @param id
    * @return
    */
-  private Integer checkPrimaryKeyId(Integer id) {
+  protected final Integer checkPrimaryKeyId(Integer id) {
     Objects.requireNonNull(id);
     if (id < 0)
       throw new IllegalArgumentException("id:" + id);

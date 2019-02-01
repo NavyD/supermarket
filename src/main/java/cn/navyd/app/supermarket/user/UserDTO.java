@@ -1,6 +1,7 @@
 package cn.navyd.app.supermarket.user;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import org.springframework.security.core.GrantedAuthority;
@@ -25,7 +26,9 @@ public class UserDTO implements UserDetails, UserLocker {
   
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
-    return roles;
+    Collection<GrantedAuthority> authorities = new ArrayList<>(roles.size());
+    roles.forEach(role -> authorities.add(role::getName));
+    return authorities;
   }
 
   @Override

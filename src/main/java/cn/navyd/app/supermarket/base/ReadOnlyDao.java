@@ -30,7 +30,7 @@ public interface ReadOnlyDao<T extends BaseDO> {
    * <p>注意：
    * <ol>
    * <li>如果设置了lastId则表示从lastId的下一个id开始，如果使用不当可能会导致总数totalRows与pageNum
-   * 无法对应的bug。如：pageNum=0, lastId=188, 是从189开始，不再是第一页
+   * 无法对应的bug。如：pageNum=0, lastId=188, 是从189开始，不再是第一页。此时总数量应该使用{@link #countRowsByLastId(Integer)}
    * <li>如果pageSize<0，由于当前实现为mysql limit pageNum*pageSize, pageSize，始终会查询所有列信息
    * <li>如果pageNum<0，由于当前实现为mysql limit pageNum*pageSize, pageSize，始终从0开始查询一个pageSize的数据
    * </ol>

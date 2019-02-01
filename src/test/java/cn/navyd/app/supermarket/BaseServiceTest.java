@@ -9,9 +9,5 @@ import cn.navyd.app.supermarket.config.SupermarketProfiles;
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
 @ActiveProfiles(profiles = SupermarketProfiles.DEVELOPMENT)
-public class BaseServiceTest {
-
-  protected final String[] BASEDO_PROPERTIES = {"id", "gmtCreate", "gmtModified"};
-
-  protected final String[] GET_USERDO_NULLABLE_PROPERTIES = {"iconPath", "phoneNumber"};
+public class BaseServiceTest extends BaseTest {
 }

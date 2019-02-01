@@ -17,9 +17,11 @@ public interface RoleService extends BaseService<RoleDO> {
   
   /**
    * 获取user关联激活的roles
+   * @deprecated 不再使用该方法应该自动过滤 role.enabled
    * @param userId
    * @return
    */
+  @Deprecated
   default Collection<RoleDO> listEnabledByUserId(Integer userId) {
     return listByUserId(userId).stream()
         .filter(role -> role.getEnabled())
