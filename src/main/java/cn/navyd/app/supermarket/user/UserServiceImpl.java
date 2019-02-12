@@ -1,18 +1,24 @@
 package cn.navyd.app.supermarket.user;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
-import org.apache.logging.log4j.util.Strings;
+import org.apache.commons.lang3.CharUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import cn.navyd.app.supermarket.base.AbstractBaseService;
 import cn.navyd.app.supermarket.base.DuplicateException;
 import cn.navyd.app.supermarket.base.NotFoundException;
-import cn.navyd.app.supermarket.base.ReadOnlyDao;
 import cn.navyd.app.supermarket.base.ServiceException;
 import cn.navyd.app.supermarket.role.RoleDO;
 import cn.navyd.app.supermarket.role.RoleNotFoundException;
+import cn.navyd.app.supermarket.role.RoleService;
 import cn.navyd.app.supermarket.user.authentication.DisabledException;
 import cn.navyd.app.supermarket.user.authentication.EmailRegisterService;
 import cn.navyd.app.supermarket.user.authentication.IncorrectPasswordException;
@@ -24,30 +30,36 @@ import cn.navyd.app.supermarket.user.reset.OldPasswordUserForm;
 import cn.navyd.app.supermarket.user.reset.SecureCodeUserForm;
 import cn.navyd.app.supermarket.user.securecode.IncorrectSecureCodeException;
 import cn.navyd.app.supermarket.user.securecode.SecureCodeNotFoundException;
+import cn.navyd.app.supermarket.user.securecode.SecureCodeService;
+import cn.navyd.app.supermarket.userrole.UserRoleDO;
+import cn.navyd.app.supermarket.userrole.UserRoleService;
+import lombok.Setter;
 
+@Setter
 @Service
-public class UserServiceImpl extends AbstractBaseService<UserDao, UserDO> implements UserService {
+public class UserServiceImpl extends AbstractBaseService<UserDO> implements UserService {
+  private static final int DEFAULT_ROLE_ID = 1;
+  
+  private final UserDao userDao;
   @Autowired
   private PasswordEncoder passwordEncoder;
-  private final EmailRegisterService emailRegisterService;
-  private final EmailForgotPasswordService emailForgotPasswordService;
-  private final ReadOnlyDao<RoleDO> roleDao;
+  @Autowired
+  private UserRoleService userRoleService;
+  @Autowired
+  private RoleService roleService;
+  @Autowired
+  private EmailRegisterService emailRegisterService;
+  @Autowired
+  private EmailForgotPasswordService emailForgotPasswordService;
   
   @Autowired
-  public UserServiceImpl(UserDao dao, ReadOnlyDao<RoleDO> roleDao, EmailRegisterService emailRegisterService, EmailForgotPasswordService emailForgotPasswordService) {
-    super(dao);
-    this.roleDao = roleDao;
-    this.emailForgotPasswordService = emailForgotPasswordService;
-    this.emailRegisterService = emailRegisterService;
+  public UserServiceImpl(UserDao userDao) {
+    super(userDao);
+    this.userDao = userDao;
   }
 
   @Override
   protected void checkAssociativeNotFound(UserDO bean) throws NotFoundException {
-    Integer roleId = bean.getRoleId();
-    if (roleId == null)
-      return;
-    if (roleDao.getByPrimaryKey(roleId) == null)
-      throw new RoleNotFoundException("id: " + roleId);
   }
 
   @Override
@@ -63,79 +75,65 @@ public class UserServiceImpl extends AbstractBaseService<UserDao, UserDO> implem
   @Override
   public Optional<UserDO> getByUsername(String username) {
     Objects.requireNonNull(username);
-    UserDO user = dao.getByUsername(username);
+    UserDO user = userDao.getByUsername(username);
     return Optional.ofNullable(user);
   }
 
   @Override
   public Optional<UserDO> getByEmail(String email) {
-    Objects.requireNonNull(email);
-    return Optional.ofNullable(dao.getByEmail(email));
+    checkArgument(!StringUtils.isEmpty(email), "email: %s", email);
+    return Optional.ofNullable(userDao.getByEmail(email));
   }
 
+  @Transactional
   @Override
   public UserDO register(RegisterUserForm registerUser) {
     Objects.requireNonNull(registerUser);
-    // 检查username不存在
     final String username = registerUser.getUsername(), password = registerUser.getPassword(),
         email = registerUser.getEmail();
+    // 检查username不存在
     Optional<UserDO> user = getByUsername(username);
-    if (!user.isPresent())
-      throw new UserNotFoundException("username: " + username);
-    UserDO updateUser = new UserDO();
-    updateUser.setUsername(username);
-    updateUser.setEmail(email);
-    updateUser.setPhoneNumber(registerUser.getPhoneNumber());
-    updateUser.setIconPath(registerUser.getIconPath());
+    if (user.isPresent())
+      throw new DuplicateUserException("username: " + username);
+    // 检查email
+    if (getByEmail(email).isPresent())
+      throw new DuplicateUserException("email: " + email);
+    // 检查安全码
+    String code = registerUser.getCode();
+    checkSecureCode(emailRegisterService, email, code);
+    // 保存用户
+    UserDO newUser = new UserDO();
     // password加密
     checkPassword(password);
     String hashPassword = passwordEncoder.encode(password);
-    updateUser.setHashPassword(hashPassword);
-    // 设置不激活
-    updateUser.setEnabled(false);
-    // 配置默认的roleId
-    final int defaultRoleId = 1; 
-    updateUser.setRoleId(defaultRoleId);
-    // 更新
-    UserDO updatedUser = updateByPrimaryKey(updateUser);
-    // 发送激活邮件
-    emailRegisterService.sendCode(GenericUser.of(updatedUser));
-    return updatedUser;
+    newUser.setHashPassword(hashPassword);
+    newUser.setUsername(username);
+    newUser.setEmail(email);
+    newUser.setPhoneNumber(registerUser.getPhoneNumber());
+    newUser.setIconPath(registerUser.getIconPath());
+    newUser.setEnabled(true);
+    return save(newUser);
   }
   
   @Override
-  public UserDO enableRegistration(Integer id, String registeredCode) {
-    Objects.requireNonNull(id);
-    Objects.requireNonNull(registeredCode);
-    // 检查user是否存在
-    UserDO existingUser = checkNotFoundByPrimaryKey(id);
-    // 检查user对应的code是否存在
-    Optional<String> code = emailRegisterService.getCode(id);
-    if (!code.isPresent())
-      throw new SecureCodeNotFoundException("userId: " + id);
-    // 注册码是否正确
-    if (!code.get().equals(registeredCode))
-      throw new IncorrectSecureCodeException("userId: " + id + ", code: " + registeredCode);
-    if (existingUser.getEnabled())
-      throw new ServiceException("用户账户已激活。user: " + existingUser);
-    // 移除注册码
-    emailRegisterService.removeCode(id);
-    // 激活账户
-    UserDO updateUser = new UserDO();
-    updateUser.setId(id);
-    updateUser.setEnabled(true);
-    return updateByPrimaryKey(updateUser);
+  public void sendRegisteringCodeByEmail(String email) {
+    // 是否合法
+    checkNotNull(email);
+    // email是否被注册
+    if (getByEmail(email).isPresent())
+      throw new DuplicateUserException("email: " + email);
+    // 未注册则发送
+    emailRegisterService.sendCode(email);
   }
   
   @Override
-  public void forgotPassword(String email) {
+  public void sendForgotPasswordCodeByEmail(String email) {
     Objects.requireNonNull(email);
     // user是否存在
-    Optional<UserDO> user = getByEmail(email);
-    if (!user.isPresent())
+    if (getByEmail(email).isEmpty())
       throw new UserNotFoundException("email: " + email);
     // 发送邮件
-    emailForgotPasswordService.sendCode(GenericUser.of(user.get()));
+    emailForgotPasswordService.sendCode(email);
   }
   
   @Override
@@ -143,16 +141,10 @@ public class UserServiceImpl extends AbstractBaseService<UserDao, UserDO> implem
     Objects.requireNonNull(user);
     final Integer id = user.getId();
     final String resetCode = user.getCode();
+    // 检查user是否存在
     UserDO existingUser = checkNotFoundByPrimaryKey(id);
-    Optional<String> code = emailForgotPasswordService.getCode(id);
-    // 重置码是否存在
-    if (!code.isPresent())
-      throw new SecureCodeNotFoundException("userId: " + id);
-    // 重置码是否正确
-    if (!code.get().equals(resetCode))
-      throw new IncorrectSecureCodeException("userId: " + id + ", code: " + resetCode);
-    // 移除重置码
-    emailForgotPasswordService.removeCode(id);
+    // 检查用户email是否对应了code
+    checkSecureCode(emailForgotPasswordService, existingUser.getEmail(), resetCode);
     // 重置密码
     return resetPassword0(existingUser, user.getNewPassword());
   }
@@ -213,6 +205,44 @@ public class UserServiceImpl extends AbstractBaseService<UserDao, UserDO> implem
     return loginedUser;
   }
   
+  @Override
+  public Collection<RoleDO> addRoles(Integer userId, Collection<Integer> roleIds) {
+    checkArgument(userId != null && userId >= 0, "userId: %d", userId);
+    checkArgument(roleIds != null && !roleIds.isEmpty(), "roleIds为空");
+    // 检查 id是否存在
+    checkNotFoundByPrimaryKey(userId);
+    checkRoleNotFoundById(roleIds);
+    Collection<UserRoleDO> userRoles = new ArrayList<>(roleIds.size());
+    roleIds.forEach(roleId -> {
+      var ur = new UserRoleDO();
+      ur.setRoleId(roleId);
+      ur.setUserId(userId);
+      userRoles.add(ur);
+    });
+    userRoleService.saveAll(userRoles);
+    return roleService.listByUserId(userId);
+  }
+  
+  @Override
+  public Collection<RoleDO> removeRoles(Integer userId, Collection<Integer> roleIds) {
+    checkArgument(userId != null && userId >= 0, "userId: %d", userId);
+    checkArgument(roleIds != null && !roleIds.isEmpty(), "roleIds为空");
+    checkNotFoundByPrimaryKey(userId);
+    checkRoleNotFoundById(roleIds);
+    roleIds.forEach(roleId -> userRoleService.removeByPrimaryKey(roleId));
+    return roleService.listByUserId(userId);
+  }
+  
+  /**
+   * 如果指定的roleId不存在则抛出有异常
+   * @param roleIds
+   */
+  private void checkRoleNotFoundById(Collection<Integer> roleIds) {
+    for (Integer roleId : roleIds)
+      if (userRoleService.getByPrimaryKey(roleId).isEmpty())
+        throw new RoleNotFoundException("roleId: " + roleId);
+  }
+  
   /**
    * 使用newPassword重置密码
    * @param existingUser
@@ -238,8 +268,32 @@ public class UserServiceImpl extends AbstractBaseService<UserDao, UserDO> implem
    * @param password
    */
   private void checkPassword(String password) {
-    if (Strings.isEmpty(password) || Strings.isBlank(password))
-      throw new IncorrectPasswordException("密码格式错误。password: " + password);
+    if (StringUtils.isEmpty(password) || StringUtils.isBlank(password))
+      throw new IllegalArgumentException("密码为空");
+    if (password.trim().length() != password.length())
+      throw new IllegalArgumentException("密码前后端存在空白符");
+    final int minLen = 4, maxLen = 16;
+    if (password.length() < minLen || password.length() > maxLen)
+      throw new IllegalArgumentException("密码长度不合法，应该在 " + minLen + "," + maxLen);
+    if (!password.chars().allMatch(ch -> CharUtils.isAscii((char)ch)))
+      throw new IllegalArgumentException("密码中存在非法字符，不允许非ascii外的字符");
   }
   
+  /**
+   * 检查指定的安全码是否合法。如果正确则会溢出指定的安全码，否则抛出异常。该方法对于一个安全码仅调用一次
+   * @param username
+   * @param usedCode
+   */
+  private void checkSecureCode(SecureCodeService<String> secureCodeService, String address, String usedCode) {
+    checkNotNull(usedCode);
+    Optional<String> code = secureCodeService.getCode(address);
+    // 重置码是否存在
+    if (!code.isPresent())
+      throw new SecureCodeNotFoundException("address: " + address);
+    // 重置码是否正确
+    if (!code.get().equals(usedCode))
+      throw new IncorrectSecureCodeException("address: " + address + ", code: " + usedCode);
+    // 移除重置码
+    emailForgotPasswordService.removeCode(address);
+  }
 }

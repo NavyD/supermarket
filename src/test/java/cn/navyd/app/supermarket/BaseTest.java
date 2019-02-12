@@ -4,7 +4,7 @@ public class BaseTest {
   /**
    * basedo三个属性
    */
-  protected final String[] BASE_PROPERTIES = {"id", "gmtCreate", "gmtModified"};
+  protected static final String[] BASE_PROPERTIES = {"id", "gmtCreate", "gmtModified"};
   
   protected static final String STRING_PREFIX = "_$";
   protected static final String  STRING_SUFFIX= "$_";

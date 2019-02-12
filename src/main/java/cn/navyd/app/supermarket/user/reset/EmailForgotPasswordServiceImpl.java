@@ -9,26 +9,29 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import cn.navyd.app.supermarket.base.ServiceException;
 import cn.navyd.app.supermarket.config.EmailProperties;
-import cn.navyd.app.supermarket.user.User;
 import cn.navyd.app.supermarket.user.securecode.AbstractEmailSecureCodeService;
 import cn.navyd.app.supermarket.user.securecode.SecureCodeGenerator;
+import lombok.Getter;
+import lombok.Setter;
 
+@Setter
+@Getter
 @Service
 public class EmailForgotPasswordServiceImpl extends AbstractEmailSecureCodeService implements EmailForgotPasswordService {
   @Autowired
   private EmailProperties sender;
   @Autowired
-  private SecureCodeGenerator codeGenerator;
+  private SecureCodeGenerator secureCodeGenerator;
   
   @Override
-  protected String doSendCode(User user) {
-    final String toUsername = user.getUsername(), toAddress = user.getEmail();
-    final String code = codeGenerator.next();
+  protected String doSendCode(String emailAddress) {
+    final String toAddress = emailAddress;
+    final String code = secureCodeGenerator.next();
     Email email = EmailBuilder.startingBlank()
         .from(sender.getUsername(), sender.getAddress())
-        .to(toUsername, toAddress)
+        .to(toAddress)
         .withSubject("app用户找回密码邮件")
-        .withPlainText("尊敬的用户：" + toUsername + "，你好！\n" 
+        .withPlainText("尊敬的用户\n你好！\n" 
             + "您的重置密码的激活码：\n" + code + "\n为保障您的帐号安全，请在" 
             + getDuration().toMinutes() + "分钟内使用该代码重置密码。"
             + "如果您并未尝试重置密码，请忽略本邮件，由此给您带来的不便请谅解。")

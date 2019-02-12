@@ -1,25 +1,26 @@
 package cn.navyd.app.supermarket.user.securecode;
 
 import java.util.Optional;
-import cn.navyd.app.supermarket.user.User;
 
-public interface SecureCodeService<K, V> {
+public interface SecureCodeService<V> {
   /**
-   * 通过key获取{@link #sendCode(User)}一致的code。如果不存在任何code则返回空
+   * 通过address获取code。如果不存在任何code则返回空
    * @param id
    * @return
    */
-  Optional<V> getCode(K key);
+  Optional<V> getCode(String address);
   
   /**
-   * 给指定的user发送代码。通常可以通过user.email或user.phoneNumber确定发送地址
-   * @param user
+   * 向指定的地址address发送使用唯一的key关联生成的code。
+   * <p>允许多次调用，不管key是否已存在，如果已存在则生成新的code
+   * @param key 通常为username
+   * @param address 通常为user.email或phonenumber
    */
-  void sendCode(User user);
+  void sendCode(String address);
   
   /**
    * 通过key移除存在的code
    * @param key
    */
-  void removeCode(K key);
+  void removeCode(String address);
 }

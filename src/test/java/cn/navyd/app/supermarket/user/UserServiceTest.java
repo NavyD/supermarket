@@ -88,7 +88,6 @@ public class UserServiceTest extends BaseServiceTest {
         user.setHashPassword(SecurityUtils.md5(password));
         user.setIconPath(icon);
         user.setPhoneNumber(phoneNumber);
-        user.setRoleId(roleId);
         user.setUsername(username);
         return user;
     }
@@ -111,7 +110,6 @@ public class UserServiceTest extends BaseServiceTest {
       user.setHashPassword(password);
       user.setIconPath(icon);
       user.setPhoneNumber(phoneNumber);
-      user.setRoleId(roleId);
       user.setUsername(username);
       user.setEnabled(enabled);
       user.setFailedCount(failedCount);

@@ -7,7 +7,7 @@ public final class UserSqlProvider extends AbstractSqlProvider<UserDO> {
   public static final String RESULT_MAP_ID = "userResultMap";
 
   private static final String EXTRA_COLUMNS =
-      "username, hash_password, icon_path, email, is_enabled, phone_number, failed_count, role_id";
+      "username, hash_password, icon_path, email, is_enabled, phone_number, failed_count";
   private static final String TABLE_NAME = "user_info";
 
   public String save(UserDO bean) {
@@ -17,7 +17,6 @@ public final class UserSqlProvider extends AbstractSqlProvider<UserDO> {
         .VALUES("username", "#{username}")
         .VALUES("hash_password", "#{hashPassword}")
         .VALUES("email", "#{email}")
-        .VALUES("role_id", "#{roleId}")
         .VALUES("icon_path", "#{iconPath,jdbcType=VARCHAR}")
         .VALUES("phone_number", "#{phoneNumber,jdbcType=CHAR}");
         
@@ -52,9 +51,6 @@ public final class UserSqlProvider extends AbstractSqlProvider<UserDO> {
         
         if (bean.getPhoneNumber() != null)
           SET("phone_number = #{phoneNumber}");
-        
-        if (bean.getRoleId() != null)
-          SET("role_id = #{roleId}");
         
         if (bean.getFailedCount() != null)
           SET("failed_count = #{failedCount}");

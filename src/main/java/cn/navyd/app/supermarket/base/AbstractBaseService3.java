@@ -17,41 +17,38 @@ import cn.navyd.app.supermarket.util.PageUtil;
  * @param <T>
  * @param <E>
  */
-public abstract class AbstractBaseService<E extends BaseDO>
+public abstract class AbstractBaseService3<T extends BaseDao<E>, E extends BaseDO>
     implements BaseService<E> {
-  private final BaseDao<E> baseDao; 
-  
-  public AbstractBaseService(BaseDao<E> baseDao) {
-    this.baseDao = baseDao;
+  protected final T dao;
+
+  public AbstractBaseService3(T dao) {
+    this.dao = dao;
   }
 
   @Override
   public Optional<E> getByPrimaryKey(Integer id) {
     checkArgument(id != null && id >= 0, "id: %s", id);
-    return Optional.ofNullable(baseDao.getByPrimaryKey(id));
+    return Optional.ofNullable(dao.getByPrimaryKey(id));
   }
 
   @Override
-  public PageInfo<E> listPage(Integer pageNumber, Integer pageSize, Integer lastId) {
-    checkArgument(pageNumber != null && pageNumber >= 0, "pageNumber: %s", pageNumber);
-    checkArgument(pageSize != null && pageSize > 0, "pageSize: %s", pageSize);
-    checkArgument(lastId == null || lastId >= 0, "lastId: %s", lastId);
-    final int totalRows = baseDao.countTotalRows();
+  public PageInfo<E> listPage(Integer pageNum, Integer pageSize, Integer lastId) {
+    int totalRows = dao.countTotalRows();
     // 检查参数是否合法。非法则不会执行查询操作
-    PageUtil.checkPageParam(pageNumber, pageSize, totalRows);
-    var data = baseDao.listPage(pageNumber, pageSize, lastId);
-    return Page.of(pageNumber, pageSize, totalRows, data);
+    PageUtil.checkPageParam(pageNum, pageSize, totalRows);
+    var data = dao.listPage(pageNum, pageSize, lastId);
+    return Page.of(pageNum, pageSize, totalRows, data);
   }
 
   @Transactional
   @Override
   public E save(E bean) throws ServiceException {
-//    checkNotNull(bean);
+    checkNotNull(bean);
     // 检查关联对象
     checkAssociativeNotFound(bean);
     // 保存
     try {
-      baseDao.save(bean);
+      dao.save(bean);
     } catch (Exception e) {
       if (e instanceof DuplicateKeyException) {
         throw createDuplicateException(e.getMessage());
@@ -73,7 +70,7 @@ public abstract class AbstractBaseService<E extends BaseDO>
     checkAssociativeNotFound(bean);
     // 更新
     try {
-      baseDao.updateByPrimaryKey(bean);
+      dao.updateByPrimaryKey(bean);
     } catch (Exception e) {
       if (e instanceof DuplicateKeyException) {
         throw createDuplicateException(e.getMessage());
@@ -88,7 +85,7 @@ public abstract class AbstractBaseService<E extends BaseDO>
   @Override
   public void removeByPrimaryKey(Integer id) throws ServiceException {
     checkNotFoundByPrimaryKey(id);
-    baseDao.removeByPrimaryKey(id);
+    dao.removeByPrimaryKey(id);
   }
 
   /**

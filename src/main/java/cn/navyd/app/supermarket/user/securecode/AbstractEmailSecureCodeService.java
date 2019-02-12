@@ -1,14 +1,14 @@
 package cn.navyd.app.supermarket.user.securecode;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.Optional;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import cn.navyd.app.supermarket.user.User;
 
-public abstract class AbstractEmailSecureCodeService implements SecureCodeService<Integer, String> {
-  private final Cache<Integer, String> cache;
+public abstract class AbstractEmailSecureCodeService implements SecureCodeService<String> {
+  private final Cache<String, String> cache;
 
   public AbstractEmailSecureCodeService() {
     cache = CacheBuilder.newBuilder()
@@ -18,22 +18,23 @@ public abstract class AbstractEmailSecureCodeService implements SecureCodeServic
   }
 
   @Override
-  public Optional<String> getCode(Integer key) {
-    Objects.requireNonNull(key);
-    return Optional.ofNullable(cache.getIfPresent(key));
+  public Optional<String> getCode(String address) {
+    Objects.requireNonNull(address);
+    return Optional.ofNullable(cache.getIfPresent(address));
   }
   
   @Override
-  public void sendCode(User user) {
-    String code = doSendCode(user);
-    cache.put(user.getId(), code);
+  public void sendCode(String address) {
+    checkNotNull(address);
+    String code = doSendCode(address);
+    cache.put(address, code);
   }
   
   @Override
-  public void removeCode(Integer key) {
-    Objects.requireNonNull(key);
-    if (getCode(key).isPresent())
-      cache.invalidate(key);
+  public void removeCode(String address) {
+    Objects.requireNonNull(address);
+    if (getCode(address).isPresent())
+      cache.invalidate(address);
   }
 
   /**
@@ -53,11 +54,12 @@ public abstract class AbstractEmailSecureCodeService implements SecureCodeServic
   protected int getMaximumSize() {
     return Integer.MAX_VALUE;
   }
-
+  
   /**
    * 发送code并返回该code
-   * @param user
+   * @param username
+   * @param emailAddress
    * @return
    */
-  protected abstract String doSendCode(User user);
+  protected abstract String doSendCode(String emailAddress);
 }

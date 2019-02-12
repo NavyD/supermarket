@@ -1,7 +1,9 @@
 package cn.navyd.app.supermarket.base;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import java.util.Collection;
+import java.util.Objects;
 import java.util.Optional;
-
 import cn.navyd.app.supermarket.util.PageInfo;
 
 public interface BaseService<T extends PrimaryKey> {
@@ -49,10 +51,32 @@ public interface BaseService<T extends PrimaryKey> {
     void removeByPrimaryKey(Integer id) throws ServiceException;
     
     /**
+     * 通过ids批量移除
+     * @param ids
+     */
+    default void removeAllByPrimaryKey(Collection<Integer> ids) {
+      checkNotNull(ids)
+      .forEach(this::removeByPrimaryKey);
+    }
+    
+    /**
      * 保存多个bean对象。默认实现调用{@link #save(BaseDO)}。如果需要批量保存操作，建议在sql中实现
      * @param beans
+     * @deprecated 修改方法名称为{@link #saveAll(Iterable)}
      */
+    @Deprecated
     default void saveList(Iterable<T> beans) throws ServiceException {
+        for (T bean : beans)
+            save(bean);
+    }
+    
+    /**
+     * 保存多个bean对象。默认实现调用{@link #save(BaseDO)}。如果需要批量保存操作，建议在sql中实现
+     * @param beans
+     * @throws ServiceException
+     */
+    default void saveAll(Iterable<T> beans) throws ServiceException {
+      Objects.requireNonNull(beans);
         for (T bean : beans)
             save(bean);
     }

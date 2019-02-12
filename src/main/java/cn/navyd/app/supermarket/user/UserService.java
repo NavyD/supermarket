@@ -1,7 +1,12 @@
 package cn.navyd.app.supermarket.user;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Optional;
+import org.apache.commons.lang3.ArrayUtils;
+import static com.google.common.base.Preconditions.*;
 import cn.navyd.app.supermarket.base.BaseService;
+import cn.navyd.app.supermarket.role.RoleDO;
 import cn.navyd.app.supermarket.user.authentication.IncorrectPasswordException;
 import cn.navyd.app.supermarket.user.authentication.RegisterUserForm;
 import cn.navyd.app.supermarket.user.reset.OldPasswordUserForm;
@@ -21,19 +26,27 @@ public interface UserService extends BaseService<UserDO> {
     Optional<UserDO> getByEmail(String email);
     
     /**
-     * 注册用户
+     * 注册用户。
+     * <p>要求使用安全码注册，通常应该先调用{@link #sendRegisteringCodeByEmail(String)}缓存了对应的安全码并传入验证正确即可注册
      * @param registerUser
      * @return
      */
     UserDO register(RegisterUserForm registerUser);
     
     /**
-     * 通过用户email找回密码。
-     * <p>该方法不会改变任何user数据，仅向user.email发送一个重置密码的邮件。使用邮件重置密码方法：{@link #resetPassword(SecureCodeUserForm)}
+     * 发送注册码。如果email已被使用则抛出异常
+     * @param registerUser
+     * @return
+     */
+    void sendRegisteringCodeByEmail(String email);
+    
+    /**
+     * 通过用户email发送安全码找回密码
+     * <p>向user.email发送一个重置密码的邮件。使用邮件重置密码方法：{@link #resetPassword(SecureCodeUserForm)}
      * @param email
      * @return
      */
-    void forgotPassword(String email) throws UserNotFoundException;
+    void sendForgotPasswordCodeByEmail(String email) throws UserNotFoundException;
     
     /**
      * 通过安全代码重置用户密码.如果user.code存在并一致，则更新密码为user.newPassword
@@ -52,14 +65,6 @@ public interface UserService extends BaseService<UserDO> {
     UserDO resetPassword(OldPasswordUserForm user) throws IncorrectPasswordException;
     
     /**
-     * 注册激活。
-     * @param id
-     * @param code
-     * @return
-     */
-    UserDO enableRegistration(Integer id, String registeredCode);
-    
-    /**
      * 用户登录操作
      * <ol>
      * <li>如果 未激活{@link UserDO#getEnabled()} 或 被锁定 则抛出异常
@@ -71,4 +76,32 @@ public interface UserService extends BaseService<UserDO> {
      * @return
      */
     UserDO login(String username, String password);
+    
+    /**
+     * 向指定用户userId添加角色信息roleIds，并返回该用户添加完成后所有的角色信息
+     * @param userId
+     * @param roleIds
+     * @return
+     */
+    Collection<RoleDO> addRoles(Integer userId, Collection<Integer> roleIds);
+    
+    default Collection<RoleDO> addRoles(Integer userId, Integer... roleIds) {
+      checkNotNull(userId);
+      checkArgument(!ArrayUtils.isEmpty(roleIds), "roleIds为空");
+      return addRoles(userId, Arrays.asList(roleIds));
+    }
+    
+    /**
+     * 对指定用户移除角色信息并返回移除后的该用户关联的角色信息
+     * @param userId
+     * @param roleIds
+     * @return
+     */
+    Collection<RoleDO> removeRoles(Integer userId, Collection<Integer> roleIds);
+    
+    default Collection<RoleDO> removeRoles(Integer userId, Integer... roleIds) {
+      checkNotNull(userId);
+      checkArgument(!ArrayUtils.isEmpty(roleIds), "roleIds为空");
+      return removeRoles(userId, Arrays.asList(roleIds));
+    }
 }

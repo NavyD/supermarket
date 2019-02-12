@@ -19,6 +19,5 @@ public class UserDO extends BaseDO {
     private String email;
     private Boolean enabled;
     private String phoneNumber;
-    private Integer roleId;
     private Integer failedCount;
 }

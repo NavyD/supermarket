@@ -14,4 +14,5 @@ public class RegisterUserForm {
   private String iconPath;
   private String email;
   private String phoneNumber;
+  private String code;
 }

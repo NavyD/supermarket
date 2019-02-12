@@ -162,7 +162,6 @@ public class UserDaoTest extends BaseDaoTest {
     user.setHashPassword(password);
     user.setIconPath(icon);
     user.setPhoneNumber(phoneNumber);
-    user.setRoleId(roleId);
     user.setUsername(username);
     user.setEnabled(enabled);
     user.setFailedCount(failedCount);

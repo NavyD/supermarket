@@ -40,7 +40,6 @@ public class GenericUser implements User, UserLocker {
     String username = "测试者_" + rand.nextInt(100000);
     String password = "" + rand.nextInt(100000);
     String email = rand.nextInt(1000000000) + "@a.com";
-    int roleId = rand.nextInt(100);
     String phoneNumber = "" + rand.nextInt(100000000);
     String icon = "/" + rand.nextInt(100000000);
     var user = new UserDO();
@@ -49,7 +48,6 @@ public class GenericUser implements User, UserLocker {
     user.setHashPassword(SecurityUtils.md5(password));
     user.setIconPath(icon);
     user.setPhoneNumber(phoneNumber);
-    user.setRoleId(roleId);
     user.setUsername(username);
     user.setFailedCount(1);
     user.setId(1);

@@ -13,5 +13,4 @@ import cn.navyd.app.supermarket.config.SupermarketProfiles;
 @SpringBootTest(classes= {DaoConfig.class, DatasourceConfig.class, MyBatisConfig.class})
 @ActiveProfiles(profiles = SupermarketProfiles.DEVELOPMENT)
 public class BaseDaoTest extends BaseTest {
-
 }

@@ -24,10 +24,11 @@ import cn.navyd.app.supermarket.base.BaseDO;
  */
 public abstract class AbstractSqlProvider<T extends BaseDO> {
   protected static final String BASE_COLUMNS = "id, gmt_create, gmt_modified";
+  protected static final String COLUMN_DELITER = ",";
   
   static String renameColumns(String table, String columns) {
     StringBuilder sb = new StringBuilder();
-    String delimiter = ",";
+    String delimiter = COLUMN_DELITER;
     String[] names = columns.split(delimiter);
     for (String col : names) {
       sb.append(table)

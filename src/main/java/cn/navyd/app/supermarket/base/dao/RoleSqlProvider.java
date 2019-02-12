@@ -94,8 +94,4 @@ public class RoleSqlProvider extends AbstractSqlProvider<RoleDO> {
 //    }.toString();
 //    return sql;
 //  }
-  
-  public static void main(String[] args) {
-  }
-  
 }
