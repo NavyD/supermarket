@@ -2,13 +2,13 @@ package cn.navyd.app.supermarket.user.securecode;
 
 import java.util.Optional;
 
-public interface SecureCodeService<V> {
+public interface SecureCodeService {
   /**
    * 通过address获取code。如果不存在任何code则返回空
    * @param id
    * @return
    */
-  Optional<V> getCode(String address);
+  Optional<String> getCode(String address);
   
   /**
    * 向指定的地址address发送使用唯一的key关联生成的code。

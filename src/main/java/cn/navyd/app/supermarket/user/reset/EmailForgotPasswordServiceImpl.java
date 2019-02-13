@@ -1,6 +1,6 @@
 package cn.navyd.app.supermarket.user.reset;
 
-import org.simplejavamail.email.Email;
+import org.simplejavamail.email.Email; 
 import org.simplejavamail.email.EmailBuilder;
 import org.simplejavamail.mailer.Mailer;
 import org.simplejavamail.mailer.MailerBuilder;
@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import cn.navyd.app.supermarket.base.ServiceException;
 import cn.navyd.app.supermarket.config.EmailProperties;
+import cn.navyd.app.supermarket.config.Qualifiers.EmailForgotSecureCodeServiceQualifier;
 import cn.navyd.app.supermarket.user.securecode.AbstractEmailSecureCodeService;
 import cn.navyd.app.supermarket.user.securecode.SecureCodeGenerator;
 import lombok.Getter;
@@ -17,7 +18,8 @@ import lombok.Setter;
 @Setter
 @Getter
 @Service
-public class EmailForgotPasswordServiceImpl extends AbstractEmailSecureCodeService implements EmailForgotPasswordService {
+@EmailForgotSecureCodeServiceQualifier
+public class EmailForgotPasswordServiceImpl extends AbstractEmailSecureCodeService {
   @Autowired
   private EmailProperties sender;
   @Autowired

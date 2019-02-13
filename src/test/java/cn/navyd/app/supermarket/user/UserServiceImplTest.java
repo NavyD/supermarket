@@ -16,13 +16,12 @@ import cn.navyd.app.supermarket.BaseMockTest;
 import cn.navyd.app.supermarket.base.ServiceException;
 import cn.navyd.app.supermarket.role.RoleService;
 import cn.navyd.app.supermarket.user.authentication.DisabledException;
-import cn.navyd.app.supermarket.user.authentication.EmailRegisterService;
 import cn.navyd.app.supermarket.user.authentication.IncorrectPasswordException;
 import cn.navyd.app.supermarket.user.authentication.LockedException;
 import cn.navyd.app.supermarket.user.authentication.RegisterUserForm;
-import cn.navyd.app.supermarket.user.reset.EmailForgotPasswordService;
 import cn.navyd.app.supermarket.user.reset.OldPasswordUserForm;
 import cn.navyd.app.supermarket.user.reset.SecureCodeUserForm;
+import cn.navyd.app.supermarket.user.securecode.SecureCodeService;
 import cn.navyd.app.supermarket.util.PageInfo;
 import cn.navyd.app.supermarket.util.PageUtils;
 
@@ -33,9 +32,9 @@ public class UserServiceImplTest extends BaseMockTest {
   @Mock
   private RoleService roleService;
   @Mock
-  private EmailRegisterService emailRegisterService;
+  private SecureCodeService emailRegisterService;
   @Mock
-  private EmailForgotPasswordService emailForgotPasswordService;
+  private SecureCodeService emailForgotPasswordService;
   private String registerCode = "1234";
   private String forgotPasswordCode = "4231";
   private UserDO user;

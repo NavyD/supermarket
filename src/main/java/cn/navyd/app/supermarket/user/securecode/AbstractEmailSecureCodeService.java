@@ -7,7 +7,7 @@ import java.util.Optional;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
-public abstract class AbstractEmailSecureCodeService implements SecureCodeService<String> {
+public abstract class AbstractEmailSecureCodeService implements SecureCodeService {
   private final Cache<String, String> cache;
 
   public AbstractEmailSecureCodeService() {

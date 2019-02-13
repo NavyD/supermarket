@@ -1,6 +1,6 @@
 package cn.navyd.app.supermarket.user;
 
-import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkArgument; 
 import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.Collection;
 import java.util.Objects;
@@ -14,14 +14,14 @@ import org.springframework.transaction.annotation.Transactional;
 import cn.navyd.app.supermarket.base.AbstractBaseService;
 import cn.navyd.app.supermarket.base.DuplicateException;
 import cn.navyd.app.supermarket.base.NotFoundException;
+import cn.navyd.app.supermarket.config.Qualifiers.EmailForgotSecureCodeServiceQualifier;
+import cn.navyd.app.supermarket.config.Qualifiers.EmailRegisterSecureCodeServiceQualifier;
 import cn.navyd.app.supermarket.role.RoleDO;
 import cn.navyd.app.supermarket.role.RoleService;
 import cn.navyd.app.supermarket.user.authentication.DisabledException;
-import cn.navyd.app.supermarket.user.authentication.EmailRegisterService;
 import cn.navyd.app.supermarket.user.authentication.IncorrectPasswordException;
 import cn.navyd.app.supermarket.user.authentication.LockedException;
 import cn.navyd.app.supermarket.user.authentication.RegisterUserForm;
-import cn.navyd.app.supermarket.user.reset.EmailForgotPasswordService;
 import cn.navyd.app.supermarket.user.reset.OldPasswordUserForm;
 import cn.navyd.app.supermarket.user.reset.SecureCodeUserForm;
 import cn.navyd.app.supermarket.user.securecode.IncorrectSecureCodeException;
@@ -42,10 +42,12 @@ public class UserServiceImpl extends AbstractBaseService<UserDO> implements User
   private UserRoleService userRoleService;
   @Autowired
   private RoleService roleService;
+  @EmailRegisterSecureCodeServiceQualifier
   @Autowired
-  private EmailRegisterService emailRegisterService;
+  private SecureCodeService emailRegisterService;
+  @EmailForgotSecureCodeServiceQualifier
   @Autowired
-  private EmailForgotPasswordService emailForgotPasswordService;
+  private SecureCodeService emailForgotPasswordService;
   
   @Autowired
   public UserServiceImpl(UserDao userDao) {
@@ -277,7 +279,7 @@ public class UserServiceImpl extends AbstractBaseService<UserDO> implements User
    * @param username
    * @param usedCode
    */
-  private void checkSecureCode(SecureCodeService<String> secureCodeService, String address, String usedCode) {
+  private void checkSecureCode(SecureCodeService secureCodeService, String address, String usedCode) {
     checkNotNull(usedCode);
     Optional<String> code = secureCodeService.getCode(address);
     // 重置码是否存在

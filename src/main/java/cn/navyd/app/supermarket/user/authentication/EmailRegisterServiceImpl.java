@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import cn.navyd.app.supermarket.base.ServiceException;
 import cn.navyd.app.supermarket.config.EmailProperties;
+import cn.navyd.app.supermarket.config.Qualifiers.EmailRegisterSecureCodeServiceQualifier;
 import cn.navyd.app.supermarket.user.securecode.AbstractEmailSecureCodeService;
 import cn.navyd.app.supermarket.user.securecode.SecureCodeGenerator;
 import lombok.Getter;
@@ -17,7 +18,8 @@ import lombok.Setter;
 @Setter
 @Getter
 @Service
-public class EmailRegisterServiceImpl extends AbstractEmailSecureCodeService implements EmailRegisterService {
+@EmailRegisterSecureCodeServiceQualifier
+public class EmailRegisterServiceImpl extends AbstractEmailSecureCodeService {
   @Autowired
   private EmailProperties sender;
   @Autowired
