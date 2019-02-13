@@ -2,6 +2,7 @@ package cn.navyd.app.supermarket.user;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
@@ -23,6 +24,7 @@ import cn.navyd.app.supermarket.user.reset.SecureCodeUserForm;
 import cn.navyd.app.supermarket.user.securecode.IncorrectSecureCodeException;
 import cn.navyd.app.supermarket.user.securecode.SecureCodeNotFoundException;
 import cn.navyd.app.supermarket.user.securecode.SecureCodeService;
+import cn.navyd.app.supermarket.userrole.UserRoleDO;
 import cn.navyd.app.supermarket.userrole.UserRoleService;
 import lombok.Getter;
 import lombok.Setter;
@@ -190,43 +192,30 @@ public class UserServiceImpl extends AbstractBaseService<UserDO> implements User
   
   @Override
   public Collection<RoleDO> addRoles(Integer userId, Collection<Integer> roleIds) {
-    return null;
-//    checkArgument(userId != null && userId >= 0, "userId: %d", userId);
-//    checkArgument(roleIds != null && !roleIds.isEmpty(), "roleIds为空");
-//    // 检查 id是否存在
-//    checkNotFoundByPrimaryKey(userId);
-//    checkRoleNotFoundById(roleIds);
-//    Collection<UserRoleDO> userRoles = new ArrayList<>(roleIds.size());
-//    roleIds.forEach(roleId -> {
-//      var ur = new UserRoleDO();
-//      ur.setRoleId(roleId);
-//      ur.setUserId(userId);
-//      userRoles.add(ur);
-//    });
-//    userRoleService.saveAll(userRoles);
-//    return roleService.listByUserId(userId);
+    checkArgument(userId != null && userId >= 0, "userId: %s", userId);
+    checkArgument(roleIds != null && !roleIds.isEmpty(), "roleIds为空");
+    // 检查user id是否存在
+    checkNotFoundByPrimaryKey(userId);
+    Collection<UserRoleDO> userRoles = new ArrayList<>(roleIds.size());
+    roleIds.forEach(roleId -> {
+      var ur = new UserRoleDO();
+      ur.setRoleId(roleId);
+      ur.setUserId(userId);
+      userRoles.add(ur);
+    });
+    // service将会检查userid roleid是否存在
+    userRoleService.saveAll(userRoles);
+    // 返回所有role
+    return roleService.listByUserId(userId);
   }
   
   @Override
   public Collection<RoleDO> removeRoles(Integer userId, Collection<Integer> roleIds) {
-    return null;
-//    checkArgument(userId != null && userId >= 0, "userId: %d", userId);
-//    checkArgument(roleIds != null && !roleIds.isEmpty(), "roleIds为空");
-//    checkNotFoundByPrimaryKey(userId);
-//    checkRoleNotFoundById(roleIds);
-//    roleIds.forEach(roleId -> userRoleService.removeByPrimaryKey(roleId));
-//    return roleService.listByUserId(userId);
+    checkArgument(userId != null && userId >= 0, "userId: %d", userId);
+    checkArgument(roleIds != null && !roleIds.isEmpty(), "roleIds为空");
+    roleIds.forEach(roleId -> userRoleService.removeByPrimaryKey(roleId));
+    return roleService.listByUserId(userId);
   }
-  
-  /**
-   * 如果指定的roleId不存在则抛出有异常
-   * @param roleIds
-   */
-//  private void checkRoleNotFoundById(Collection<Integer> roleIds) {
-//    for (Integer roleId : roleIds)
-//      if (userRoleService.getByPrimaryKey(roleId).isEmpty())
-//        throw new RoleNotFoundException("roleId: " + roleId);
-//  }
   
   /**
    * 检查newPassword 并hash更新密码。

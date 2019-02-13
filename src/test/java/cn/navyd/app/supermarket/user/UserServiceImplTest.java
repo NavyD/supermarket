@@ -4,7 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Optional;
+import org.assertj.core.api.Condition;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,8 +18,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
-import cn.navyd.app.supermarket.BaseDaoTest;
+import cn.navyd.app.supermarket.BaseServiceTest;
 import cn.navyd.app.supermarket.base.ServiceException;
+import cn.navyd.app.supermarket.role.RoleDO;
+import cn.navyd.app.supermarket.role.RoleNotFoundException;
 import cn.navyd.app.supermarket.role.RoleService;
 import cn.navyd.app.supermarket.user.authentication.DisabledException;
 import cn.navyd.app.supermarket.user.authentication.IncorrectPasswordException;
@@ -25,15 +30,18 @@ import cn.navyd.app.supermarket.user.authentication.RegisterUserForm;
 import cn.navyd.app.supermarket.user.reset.OldPasswordUserForm;
 import cn.navyd.app.supermarket.user.reset.SecureCodeUserForm;
 import cn.navyd.app.supermarket.user.securecode.SecureCodeService;
+import cn.navyd.app.supermarket.userrole.UserRoleService;
 import cn.navyd.app.supermarket.util.PageInfo;
 import cn.navyd.app.supermarket.util.PageUtils;
 
 @ExtendWith(MockitoExtension.class)
-public class UserServiceImplTest extends BaseDaoTest {
+public class UserServiceImplTest extends BaseServiceTest {
   private static final PasswordEncoder PASSWORD_ENCODER = PasswordEncoderFactories.createDelegatingPasswordEncoder();
   @Autowired
   private UserDao userDao;
-  @Mock
+  @Autowired
+  private UserRoleService userRoleService;
+  @Autowired
   private RoleService roleService;
   @Mock
   private SecureCodeService emailRegisterService;
@@ -62,6 +70,7 @@ public class UserServiceImplTest extends BaseDaoTest {
     userService.setEmailRegisterSecureCodeService(emailRegisterService);
     userService.setPasswordEncoder(PASSWORD_ENCODER);
     userService.setRoleService(roleService);
+    userService.setUserRoleService(userRoleService);
   }
   
   @Test
@@ -412,6 +421,35 @@ public class UserServiceImplTest extends BaseDaoTest {
     userService.updateByPrimaryKey(updateUneabledUser);
     assertThatThrownBy(() -> userService.login(user.getUsername(), rawPassword))
       .isInstanceOf(DisabledException.class);
+  }
+  
+  @SuppressWarnings("unchecked")
+  @Transactional
+  @Test
+  void addRolesTest() {
+    int userId = user.getId();
+    Collection<Integer> roleIds = Arrays.asList(4, 5);
+    assertThat(userService.addRoles(userId, roleIds))
+      .isNotNull()
+      .matches(roles -> ((Collection<RoleDO>) roles).size() > roleIds.size())
+      .areAtLeast(2, new Condition<>(r -> roleIds.contains(r.getId()), "roleIds:%s", roleIds));
+  }
+  
+  @Transactional
+  @Test
+  void addRolesNotFoundRoleTest() {
+    int userId = user.getId();
+    Collection<Integer> roleIds = Arrays.asList(Integer.MAX_VALUE, 5);
+    assertThatThrownBy(() -> userService.addRoles(userId, roleIds)).isInstanceOf(RoleNotFoundException.class);
+  }
+  
+  @Transactional
+  @Test
+  void removeRolesTest() {
+    int roleId = 1, userId = user.getId();
+    assertThat(userService.removeRoles(userId, roleId))
+      .isNotNull()
+      .allMatch(r -> r.getId() != roleId);
   }
   
   UserDO getUpdateUser() {

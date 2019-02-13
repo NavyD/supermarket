@@ -9,7 +9,7 @@ public interface RoleService extends BaseService<RoleDO> {
   Optional<RoleDO> getByName(String name);
   
   /**
-   * 获取指定user id对应所有的角色信息，包括禁用的
+   * 获取指定user id对应所有的角色信息
    * @param userId
    * @return
    */

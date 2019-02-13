@@ -1,6 +1,7 @@
 package cn.navyd.app.supermarket.base;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
@@ -75,10 +76,11 @@ public interface BaseService<T extends PrimaryKey> {
      * @param beans
      * @throws ServiceException
      */
-    default void saveAll(Iterable<T> beans) throws ServiceException {
+    default Collection<T> saveAll(Collection<T> beans) throws ServiceException {
       Objects.requireNonNull(beans);
-        for (T bean : beans)
-            save(bean);
+      Collection<T> data = new ArrayList<>(beans.size());
+      beans.forEach(bean -> data.add(save(bean)));
+      return data;
     }
     
     /**

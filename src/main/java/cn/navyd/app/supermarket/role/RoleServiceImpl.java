@@ -26,7 +26,7 @@ public class RoleServiceImpl extends AbstractBaseService<RoleDO> implements Role
 
   @Override
   public Optional<RoleDO> getByName(String name) {
-    checkArgument(!StringUtils.isEmpty(name));
+    checkArgument(!StringUtils.isEmpty(name) && !StringUtils.isBlank(name));
     return Optional.ofNullable(roleDao.getByName(name));
   }
 
@@ -37,7 +37,6 @@ public class RoleServiceImpl extends AbstractBaseService<RoleDO> implements Role
     checkUserNotFoundByUserId(userId);
     return roleDao.listByUserId(userId);
   }
-
 
   @Override
   protected void checkAssociativeNotFound(RoleDO bean) throws NotFoundException {

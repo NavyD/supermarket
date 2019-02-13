@@ -1,6 +1,7 @@
 package cn.navyd.app.supermarket.userrole;
 
 import cn.navyd.app.supermarket.base.AbstractBaseService;
+import cn.navyd.app.supermarket.base.DuplicateException;
 import cn.navyd.app.supermarket.base.NotFoundException;
 import cn.navyd.app.supermarket.base.ReadOnlyDao;
 import cn.navyd.app.supermarket.role.RoleDO;
@@ -28,6 +29,16 @@ public class UserRoleServiceImpl extends AbstractBaseService<UserRoleDO> impleme
       
     if (roleId != null && roleDao.getByPrimaryKey(roleId) == null)
       throw new RoleNotFoundException("id: " + roleId);
+  }
+  
+  @Override
+  protected DuplicateException createDuplicateException(String message) {
+    return new DuplicateUserRoleException(message);
+  }
+  
+  @Override
+  protected NotFoundException createNotFoundException(String message) {
+    return new UserRoleNotFoundException(message);
   }
 
 }
