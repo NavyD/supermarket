@@ -1,7 +1,5 @@
 package cn.navyd.app.supermarket.userrole;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import cn.navyd.app.supermarket.base.AbstractBaseService;
 import cn.navyd.app.supermarket.base.NotFoundException;
 import cn.navyd.app.supermarket.base.ReadOnlyDao;
@@ -9,16 +7,17 @@ import cn.navyd.app.supermarket.role.RoleDO;
 import cn.navyd.app.supermarket.role.RoleNotFoundException;
 import cn.navyd.app.supermarket.user.UserDO;
 import cn.navyd.app.supermarket.user.UserNotFoundException;
+import lombok.Getter;
+import lombok.Setter;
 
-@Service
+@Getter
+@Setter
 public class UserRoleServiceImpl extends AbstractBaseService<UserRoleDO> implements UserRoleService {
-  @Autowired
   private ReadOnlyDao<UserDO> userDao;
-  @Autowired
   private ReadOnlyDao<RoleDO> roleDao;
   
-  public UserRoleServiceImpl(UserRoleDao dao) {
-    super(dao);
+  public UserRoleServiceImpl(UserRoleDao userRoleDao) {
+    super(userRoleDao);
   }
 
   @Override

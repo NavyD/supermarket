@@ -1,21 +1,17 @@
 package cn.navyd.app.supermarket.user;
 
-import static com.google.common.base.Preconditions.checkArgument; 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
 import org.apache.commons.lang3.CharUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import cn.navyd.app.supermarket.base.AbstractBaseService;
 import cn.navyd.app.supermarket.base.DuplicateException;
 import cn.navyd.app.supermarket.base.NotFoundException;
-import cn.navyd.app.supermarket.config.Qualifiers.EmailForgotSecureCodeServiceQualifier;
-import cn.navyd.app.supermarket.config.Qualifiers.EmailRegisterSecureCodeServiceQualifier;
 import cn.navyd.app.supermarket.role.RoleDO;
 import cn.navyd.app.supermarket.role.RoleService;
 import cn.navyd.app.supermarket.user.authentication.DisabledException;
@@ -33,23 +29,14 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@Service
 public class UserServiceImpl extends AbstractBaseService<UserDO> implements UserService {
   private final UserDao userDao;
-  @Autowired
   private PasswordEncoder passwordEncoder;
-  @Autowired
   private UserRoleService userRoleService;
-  @Autowired
   private RoleService roleService;
-  @EmailRegisterSecureCodeServiceQualifier
-  @Autowired
-  private SecureCodeService emailRegisterService;
-  @EmailForgotSecureCodeServiceQualifier
-  @Autowired
-  private SecureCodeService emailForgotPasswordService;
+  private SecureCodeService emailRegisterSecureCodeService;
+  private SecureCodeService emailForgotSecureCodeService;
   
-  @Autowired
   public UserServiceImpl(UserDao userDao) {
     super(userDao);
     this.userDao = userDao;
@@ -97,7 +84,7 @@ public class UserServiceImpl extends AbstractBaseService<UserDO> implements User
       throw new DuplicateUserException("email: " + email);
     // 检查安全码
     String code = registerUser.getCode();
-    checkSecureCode(emailRegisterService, email, code);
+    checkSecureCode(emailRegisterSecureCodeService, email, code);
     // 保存用户
     UserDO newUser = new UserDO();
     // password加密
@@ -120,7 +107,7 @@ public class UserServiceImpl extends AbstractBaseService<UserDO> implements User
     if (getByEmail(email).isPresent())
       throw new DuplicateUserException("email: " + email);
     // 未注册则发送
-    emailRegisterService.sendCode(email);
+    emailRegisterSecureCodeService.sendCode(email);
   }
   
   @Override
@@ -130,7 +117,7 @@ public class UserServiceImpl extends AbstractBaseService<UserDO> implements User
     if (getByEmail(email).isEmpty())
       throw new UserNotFoundException("email: " + email);
     // 发送邮件
-    emailForgotPasswordService.sendCode(email);
+    emailForgotSecureCodeService.sendCode(email);
   }
   
   @Override
@@ -141,7 +128,7 @@ public class UserServiceImpl extends AbstractBaseService<UserDO> implements User
     // 检查user是否存在
     UserDO existingUser = checkNotFoundByPrimaryKey(id);
     // 检查用户email是否对应了code
-    checkSecureCode(emailForgotPasswordService, existingUser.getEmail(), resetCode);
+    checkSecureCode(emailForgotSecureCodeService, existingUser.getEmail(), resetCode);
     return resetPassword0(existingUser, user.getNewPassword());
   }
   
@@ -289,6 +276,6 @@ public class UserServiceImpl extends AbstractBaseService<UserDO> implements User
     if (!code.get().equals(usedCode))
       throw new IncorrectSecureCodeException("address: " + address + ", code: " + usedCode);
     // 移除重置码
-    emailForgotPasswordService.removeCode(address);
+    emailForgotSecureCodeService.removeCode(address);
   }
 }

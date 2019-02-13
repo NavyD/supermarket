@@ -39,7 +39,7 @@ public class UserRoleDaoTest extends BaseDaoTest {
   @Test
   void listPageTest() {
     int pageSize = 5, pageNum = 0;
-    int expectedSize = PageUtils.calculateCurrentPageSize(totalRows, pageNum, pageSize);
+    int expectedSize = PageUtils.getCurrentSize(totalRows, pageNum, pageSize);
     var roles = userRoleDao.listPage(pageNum, pageSize, null);
     assertThat(roles)
       .isNotNull()
@@ -49,7 +49,7 @@ public class UserRoleDaoTest extends BaseDaoTest {
     
     pageSize = Integer.MAX_VALUE;
     pageNum = 0;
-    expectedSize = PageUtils.calculateCurrentPageSize(totalRows, pageNum, pageSize);
+    expectedSize = PageUtils.getCurrentSize(totalRows, pageNum, pageSize);
     roles = userRoleDao.listPage(pageNum, pageSize, null);
     assertThat(roles)
       .isNotNull()

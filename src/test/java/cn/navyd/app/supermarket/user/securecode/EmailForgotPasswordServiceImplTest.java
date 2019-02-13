@@ -12,7 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import cn.navyd.app.supermarket.config.EmailProperties;
 import cn.navyd.app.supermarket.config.SupermarketProfiles;
-import cn.navyd.app.supermarket.user.reset.EmailForgotPasswordServiceImpl;
+import cn.navyd.app.supermarket.user.reset.EmailForgotSecureCodeServiceImpl;
 
 //使用配置文件中的email 属性
 @EnableConfigurationProperties
@@ -23,11 +23,11 @@ public class EmailForgotPasswordServiceImplTest {
   private SecureCodeGenerator generator;
   @Autowired
   private EmailProperties senderEmailProperties;
-  private EmailForgotPasswordServiceImpl emailForgotPasswordServiceImpl;
+  private EmailForgotSecureCodeServiceImpl emailForgotPasswordServiceImpl;
   
   @BeforeEach
   void setup() {
-    emailForgotPasswordServiceImpl = new EmailForgotPasswordServiceImpl();
+    emailForgotPasswordServiceImpl = new EmailForgotSecureCodeServiceImpl();
     emailForgotPasswordServiceImpl.setSecureCodeGenerator(generator);
     emailForgotPasswordServiceImpl.setSender(senderEmailProperties);
   }

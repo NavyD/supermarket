@@ -7,12 +7,15 @@ import static org.mockito.Mockito.when;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
-import cn.navyd.app.supermarket.BaseMockTest;
+import cn.navyd.app.supermarket.BaseDaoTest;
 import cn.navyd.app.supermarket.base.ServiceException;
 import cn.navyd.app.supermarket.role.RoleService;
 import cn.navyd.app.supermarket.user.authentication.DisabledException;
@@ -25,7 +28,8 @@ import cn.navyd.app.supermarket.user.securecode.SecureCodeService;
 import cn.navyd.app.supermarket.util.PageInfo;
 import cn.navyd.app.supermarket.util.PageUtils;
 
-public class UserServiceImplTest extends BaseMockTest {
+@ExtendWith(MockitoExtension.class)
+public class UserServiceImplTest extends BaseDaoTest {
   private static final PasswordEncoder PASSWORD_ENCODER = PasswordEncoderFactories.createDelegatingPasswordEncoder();
   @Autowired
   private UserDao userDao;
@@ -46,6 +50,7 @@ public class UserServiceImplTest extends BaseMockTest {
   
   @BeforeEach
   void setup() {
+    MockitoAnnotations.initMocks(this);
     final int id = 1, secondId = 2;
     this.user = userDao.getByPrimaryKey(id);
     this.secondUser = userDao.getByPrimaryKey(secondId);
@@ -53,8 +58,8 @@ public class UserServiceImplTest extends BaseMockTest {
     assertThat(secondUser).isNotNull();
     
     userService = new UserServiceImpl(userDao);
-    userService.setEmailForgotPasswordService(emailForgotPasswordService);
-    userService.setEmailRegisterService(emailRegisterService);
+    userService.setEmailForgotSecureCodeService(emailForgotPasswordService);
+    userService.setEmailRegisterSecureCodeService(emailRegisterService);
     userService.setPasswordEncoder(PASSWORD_ENCODER);
     userService.setRoleService(roleService);
   }

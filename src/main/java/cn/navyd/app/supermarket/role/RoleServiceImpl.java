@@ -4,19 +4,19 @@ import static com.google.common.base.Preconditions.checkArgument;
 import java.util.Collection;
 import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import cn.navyd.app.supermarket.base.AbstractBaseService;
 import cn.navyd.app.supermarket.base.DuplicateException;
 import cn.navyd.app.supermarket.base.NotFoundException;
 import cn.navyd.app.supermarket.base.ReadOnlyDao;
 import cn.navyd.app.supermarket.user.UserDO;
 import cn.navyd.app.supermarket.user.UserNotFoundException;
+import lombok.Getter;
+import lombok.Setter;
 
-@Service
+@Getter
+@Setter
 public class RoleServiceImpl extends AbstractBaseService<RoleDO> implements RoleService {
   private final RoleDao roleDao;
-  @Autowired
   private ReadOnlyDao<UserDO> userDao;
   
   public RoleServiceImpl(RoleDao roleDao) {

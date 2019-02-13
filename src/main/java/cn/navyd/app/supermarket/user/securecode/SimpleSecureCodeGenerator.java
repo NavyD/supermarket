@@ -2,14 +2,12 @@ package cn.navyd.app.supermarket.user.securecode;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import org.springframework.stereotype.Component;
 
 /**
  * 一个简单的安全码生成器。
  * @author navyd
  *
  */
-@Component
 public class SimpleSecureCodeGenerator implements SecureCodeGenerator {
   private static final int MIN_CODE = 100000, MAX_CODE = 999999;
   
