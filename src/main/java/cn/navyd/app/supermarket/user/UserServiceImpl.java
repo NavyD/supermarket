@@ -2,7 +2,6 @@ package cn.navyd.app.supermarket.user;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
@@ -15,15 +14,12 @@ import org.springframework.transaction.annotation.Transactional;
 import cn.navyd.app.supermarket.base.AbstractBaseService;
 import cn.navyd.app.supermarket.base.DuplicateException;
 import cn.navyd.app.supermarket.base.NotFoundException;
-import cn.navyd.app.supermarket.base.ServiceException;
 import cn.navyd.app.supermarket.role.RoleDO;
-import cn.navyd.app.supermarket.role.RoleNotFoundException;
 import cn.navyd.app.supermarket.role.RoleService;
 import cn.navyd.app.supermarket.user.authentication.DisabledException;
 import cn.navyd.app.supermarket.user.authentication.EmailRegisterService;
 import cn.navyd.app.supermarket.user.authentication.IncorrectPasswordException;
 import cn.navyd.app.supermarket.user.authentication.LockedException;
-import cn.navyd.app.supermarket.user.authentication.LoginedUser;
 import cn.navyd.app.supermarket.user.authentication.RegisterUserForm;
 import cn.navyd.app.supermarket.user.reset.EmailForgotPasswordService;
 import cn.navyd.app.supermarket.user.reset.OldPasswordUserForm;
@@ -31,15 +27,14 @@ import cn.navyd.app.supermarket.user.reset.SecureCodeUserForm;
 import cn.navyd.app.supermarket.user.securecode.IncorrectSecureCodeException;
 import cn.navyd.app.supermarket.user.securecode.SecureCodeNotFoundException;
 import cn.navyd.app.supermarket.user.securecode.SecureCodeService;
-import cn.navyd.app.supermarket.userrole.UserRoleDO;
 import cn.navyd.app.supermarket.userrole.UserRoleService;
+import lombok.Getter;
 import lombok.Setter;
 
+@Getter
 @Setter
 @Service
 public class UserServiceImpl extends AbstractBaseService<UserDO> implements UserService {
-  private static final int DEFAULT_ROLE_ID = 1;
-  
   private final UserDao userDao;
   @Autowired
   private PasswordEncoder passwordEncoder;
@@ -81,7 +76,7 @@ public class UserServiceImpl extends AbstractBaseService<UserDO> implements User
 
   @Override
   public Optional<UserDO> getByEmail(String email) {
-    checkArgument(!StringUtils.isEmpty(email), "email: %s", email);
+    checkArgument(!StringUtils.isEmpty(email) && !StringUtils.isBlank(email), "email: %s", email);
     return Optional.ofNullable(userDao.getByEmail(email));
   }
 
@@ -138,29 +133,27 @@ public class UserServiceImpl extends AbstractBaseService<UserDO> implements User
   
   @Override
   public UserDO resetPassword(SecureCodeUserForm user) {
-    Objects.requireNonNull(user);
+    checkNotNull(user);
     final Integer id = user.getId();
     final String resetCode = user.getCode();
     // 检查user是否存在
     UserDO existingUser = checkNotFoundByPrimaryKey(id);
     // 检查用户email是否对应了code
     checkSecureCode(emailForgotPasswordService, existingUser.getEmail(), resetCode);
-    // 重置密码
     return resetPassword0(existingUser, user.getNewPassword());
   }
   
   @Override
   public UserDO resetPassword(OldPasswordUserForm user) {
-    Objects.requireNonNull(user);
-    final Integer id = user.getId();
-    final String oldPassword = user.getOldPassword();
-    UserDO existingUser = checkNotFoundByPrimaryKey(id);
-    // 检查旧密码是否正确  多做了一次hash无所谓了bcrypt有点慢但好在重置功能少用
-    String oldHashPassword = passwordEncoder.encode(oldPassword);
-    if (!oldHashPassword.equals(existingUser.getHashPassword()))
-      throw new IncorrectPasswordException();
-    // 重置
-    return resetPassword0(existingUser, user.getNewPassword());
+    checkNotNull(user);
+    UserDO existingUser = checkNotFoundByPrimaryKey(user.getId());
+    final String oldPassword = user.getOldPassword(), 
+        oldHashPassword = existingUser.getHashPassword(), 
+        newPassword = user.getNewPassword();
+    // 检查旧密码是否正确
+    if (!passwordEncoder.matches(oldPassword, oldHashPassword))
+      throw new IncorrectPasswordException("旧密码不正确");
+    return resetPassword0(existingUser, newPassword);
   }
   
   /**
@@ -171,95 +164,95 @@ public class UserServiceImpl extends AbstractBaseService<UserDO> implements User
      * <li>如果登录成功则清除failCount并返回
      * </ol>
    */
+  @Transactional
   @Override
   public UserDO login(String username, String password) {
-    Objects.requireNonNull(username);
-    Objects.requireNonNull(password);
+    checkNotNull(username);
+    checkNotNull(password);
     Optional<UserDO> user = getByUsername(username);
     if (!user.isPresent())
       throw new UserNotFoundException("username: " + username);
-    UserDO loginedUser = user.get();
-    LoginedUser existingUser = new LoginedUser(loginedUser);
+    final UserDO existingUser = user.get();
+    GenericUser genericUser = GenericUser.of(user.get());
     // 账户未激活
-    if (!existingUser.isEnabled())
+    if (!genericUser.isEnabled())
       throw new DisabledException();
     // 账户已锁定
-    if (existingUser.isLocked()) {
+    if (genericUser.isLocked()) {
       throw new LockedException();
     }
     // 密码错误  设置登录失败次数
-    if (!existingUser.getPassword().equals(password)) {
+    if (!passwordEncoder.matches(password, existingUser.getHashPassword())) {
       UserDO updateUser = new UserDO();
       updateUser.setId(existingUser.getId());
       updateUser.setFailedCount(existingUser.getFailedCount()+1);
       updateByPrimaryKey(updateUser);
-      throw new IncorrectPasswordException("username: " + username + ", password: " + password);
+      throw new IncorrectPasswordException("登录失败，密码错误");
     }
     // 登录成功 清除失败次数
     else if (existingUser.getFailedCount() > 0) {
       UserDO updateUser = new UserDO();
       updateUser.setId(existingUser.getId());
       updateUser.setFailedCount(0);
-      loginedUser = updateByPrimaryKey(updateUser);
+      return updateByPrimaryKey(updateUser);
     }
-    return loginedUser;
+    return existingUser;
   }
   
   @Override
   public Collection<RoleDO> addRoles(Integer userId, Collection<Integer> roleIds) {
-    checkArgument(userId != null && userId >= 0, "userId: %d", userId);
-    checkArgument(roleIds != null && !roleIds.isEmpty(), "roleIds为空");
-    // 检查 id是否存在
-    checkNotFoundByPrimaryKey(userId);
-    checkRoleNotFoundById(roleIds);
-    Collection<UserRoleDO> userRoles = new ArrayList<>(roleIds.size());
-    roleIds.forEach(roleId -> {
-      var ur = new UserRoleDO();
-      ur.setRoleId(roleId);
-      ur.setUserId(userId);
-      userRoles.add(ur);
-    });
-    userRoleService.saveAll(userRoles);
-    return roleService.listByUserId(userId);
+    return null;
+//    checkArgument(userId != null && userId >= 0, "userId: %d", userId);
+//    checkArgument(roleIds != null && !roleIds.isEmpty(), "roleIds为空");
+//    // 检查 id是否存在
+//    checkNotFoundByPrimaryKey(userId);
+//    checkRoleNotFoundById(roleIds);
+//    Collection<UserRoleDO> userRoles = new ArrayList<>(roleIds.size());
+//    roleIds.forEach(roleId -> {
+//      var ur = new UserRoleDO();
+//      ur.setRoleId(roleId);
+//      ur.setUserId(userId);
+//      userRoles.add(ur);
+//    });
+//    userRoleService.saveAll(userRoles);
+//    return roleService.listByUserId(userId);
   }
   
   @Override
   public Collection<RoleDO> removeRoles(Integer userId, Collection<Integer> roleIds) {
-    checkArgument(userId != null && userId >= 0, "userId: %d", userId);
-    checkArgument(roleIds != null && !roleIds.isEmpty(), "roleIds为空");
-    checkNotFoundByPrimaryKey(userId);
-    checkRoleNotFoundById(roleIds);
-    roleIds.forEach(roleId -> userRoleService.removeByPrimaryKey(roleId));
-    return roleService.listByUserId(userId);
+    return null;
+//    checkArgument(userId != null && userId >= 0, "userId: %d", userId);
+//    checkArgument(roleIds != null && !roleIds.isEmpty(), "roleIds为空");
+//    checkNotFoundByPrimaryKey(userId);
+//    checkRoleNotFoundById(roleIds);
+//    roleIds.forEach(roleId -> userRoleService.removeByPrimaryKey(roleId));
+//    return roleService.listByUserId(userId);
   }
   
   /**
    * 如果指定的roleId不存在则抛出有异常
    * @param roleIds
    */
-  private void checkRoleNotFoundById(Collection<Integer> roleIds) {
-    for (Integer roleId : roleIds)
-      if (userRoleService.getByPrimaryKey(roleId).isEmpty())
-        throw new RoleNotFoundException("roleId: " + roleId);
-  }
+//  private void checkRoleNotFoundById(Collection<Integer> roleIds) {
+//    for (Integer roleId : roleIds)
+//      if (userRoleService.getByPrimaryKey(roleId).isEmpty())
+//        throw new RoleNotFoundException("roleId: " + roleId);
+//  }
   
   /**
-   * 使用newPassword重置密码
+   * 检查newPassword 并hash更新密码。
    * @param existingUser
    * @param newPassword
    * @return
    */
   private UserDO resetPassword0(UserDO existingUser, String newPassword) {
-    // 更新密码
     checkPassword(newPassword);
-    String newHashPassword = passwordEncoder.encode(newPassword);
-    // 新旧密码不能相同
-    if (newHashPassword.equals(existingUser.getHashPassword()))
-      throw new IncorrectPasswordException("新旧密码不能相同");
-    // 更新
+    // 检查新旧密码是否相同
+    if (passwordEncoder.matches(newPassword, existingUser.getHashPassword()))
+      throw new IllegalArgumentException("新旧密码相同");
     UserDO updateUser = new UserDO();
     updateUser.setId(existingUser.getId());
-    updateUser.setHashPassword(newHashPassword);
+    updateUser.setHashPassword(passwordEncoder.encode(newPassword));
     return updateByPrimaryKey(updateUser);
   }
   

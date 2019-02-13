@@ -2,11 +2,12 @@ package cn.navyd.app.supermarket.user;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import java.time.LocalDateTime;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import cn.navyd.app.supermarket.BaseDaoTest;
-import cn.navyd.app.supermarket.util.PageUtil;
+import cn.navyd.app.supermarket.util.PageUtils;
 
 public class UserDaoTest extends BaseDaoTest {
   @Autowired
@@ -16,7 +17,13 @@ public class UserDaoTest extends BaseDaoTest {
   private final int id = 1;
   private final String username = "测试用户";
   private final String email = "aabb@cc.dd";
-  private final int totalRows = 1;
+  private final int realTotalRows = 3;
+  private int totalRows;
+  
+  @BeforeEach
+  void setup() {
+    this.totalRows = userDao.countTotalRows();
+  }
   
   @Test
   public void getByPrimaryKeyBaseTest() {
@@ -52,7 +59,7 @@ public class UserDaoTest extends BaseDaoTest {
   
   @Test
   public void countTotalRowsTest() {
-    assertThat(userDao.countTotalRows()).matches(count -> count == totalRows);
+    assertThat(userDao.countTotalRows()).matches(rows -> rows == realTotalRows);
   }
   
   @Test
@@ -66,7 +73,7 @@ public class UserDaoTest extends BaseDaoTest {
   public void listPageTest() {
     int pageSize = 5;
     int pageNum = 0;
-    int expectedSize = PageUtil.calculateCurrentPageSize(totalRows, pageNum, pageSize);
+    int expectedSize = PageUtils.getCurrentSize(totalRows, pageNum, pageSize);
     var users = userDao.listPage(pageNum, pageSize, null);
     assertThat(users)
       .isNotNull()
@@ -76,7 +83,7 @@ public class UserDaoTest extends BaseDaoTest {
 
     pageSize = Integer.MAX_VALUE;
     pageNum = 0;
-    expectedSize = PageUtil.calculateCurrentPageSize(totalRows, pageNum, pageSize);
+    expectedSize = PageUtils.getCurrentSize(totalRows, pageNum, pageSize);
     users = userDao.listPage(pageNum, pageSize, null);
     assertThat(users)
       .isNotNull()
@@ -152,7 +159,6 @@ public class UserDaoTest extends BaseDaoTest {
     String icon = getTestData("/test/1");
     boolean enabled = true;
     int failedCount = 1;
-    int roleId = Integer.MAX_VALUE;
     int id = Integer.MAX_VALUE;
     LocalDateTime now = LocalDateTime.now();
     var user = new UserDO();

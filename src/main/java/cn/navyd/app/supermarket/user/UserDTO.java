@@ -10,7 +10,7 @@ import cn.navyd.app.supermarket.role.RoleDO;
 import lombok.Getter;
 
 @Getter
-public class UserDTO implements UserDetails, UserLocker {
+public class UserDTO extends AbstractFailedCountUserLocker implements UserDetails {
   /**
    * 
    */

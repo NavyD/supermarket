@@ -35,9 +35,9 @@ public interface ReadOnlyDao<T extends BaseDO> {
    * <li>如果pageNum<0，由于当前实现为mysql limit pageNum*pageSize, pageSize，始终从0开始查询一个pageSize的数据
    * </ol>
    * @param pageSize
-   * @param pageNum
+   * @param pageNumber
    * @param lastId
    * @return
    */
-  Collection<T> listPage(Integer pageNum, Integer pageSize, Integer lastId);
+  Collection<T> listPage(Integer pageNumber, Integer pageSize, Integer lastId);
 }

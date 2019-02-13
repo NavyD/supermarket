@@ -3,9 +3,10 @@ package cn.navyd.app.supermarket.util;
 import java.util.Collection;
 
 /**
- * Abstract interface for pagination information.
- * 
- * @author Oliver Gierke
+ * 一个分页信息接口
+ * @author navyd
+ *
+ * @param <T>
  */
 public interface PageInfo<T> {
     /**

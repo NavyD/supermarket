@@ -5,9 +5,11 @@ import java.util.Random;
 import org.springframework.beans.BeanUtils;
 import cn.navyd.app.supermarket.util.SecurityUtils;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
-public class GenericUser implements User, UserLocker {
+@EqualsAndHashCode(callSuper=false)
+public class GenericUser extends AbstractFailedCountUserLocker implements User {
   /**
    * 
    */

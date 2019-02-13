@@ -7,7 +7,7 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.transaction.annotation.Transactional;
 import cn.navyd.app.supermarket.util.Page;
 import cn.navyd.app.supermarket.util.PageInfo;
-import cn.navyd.app.supermarket.util.PageUtil;
+import cn.navyd.app.supermarket.util.PageUtils;
 
 /**
  * BaseService的抽象实现，对于单个Dao对象的service封装应该继承该类
@@ -36,17 +36,16 @@ public abstract class AbstractBaseService<E extends BaseDO>
     checkArgument(pageNumber != null && pageNumber >= 0, "pageNumber: %s", pageNumber);
     checkArgument(pageSize != null && pageSize > 0, "pageSize: %s", pageSize);
     checkArgument(lastId == null || lastId >= 0, "lastId: %s", lastId);
-    final int totalRows = baseDao.countTotalRows();
-    // 检查参数是否合法。非法则不会执行查询操作
-    PageUtil.checkPageParam(pageNumber, pageSize, totalRows);
-    var data = baseDao.listPage(pageNumber, pageSize, lastId);
-    return Page.of(pageNumber, pageSize, totalRows, data);
+    final int totalRows = lastId == null ? baseDao.countTotalRows() : baseDao.countRowsByLastId(lastId);
+    final var data = baseDao.listPage(pageNumber, pageSize, lastId);
+    PageUtils.checkPageArgument(totalRows, pageNumber, pageSize, data);
+    return new Page<>(pageNumber, pageSize, totalRows, data);
   }
 
   @Transactional
   @Override
   public E save(E bean) throws ServiceException {
-//    checkNotNull(bean);
+    checkNotNull(bean);
     // 检查关联对象
     checkAssociativeNotFound(bean);
     // 保存

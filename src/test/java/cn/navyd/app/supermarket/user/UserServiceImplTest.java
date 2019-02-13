@@ -13,11 +13,18 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import cn.navyd.app.supermarket.BaseMockTest;
+import cn.navyd.app.supermarket.base.ServiceException;
 import cn.navyd.app.supermarket.role.RoleService;
+import cn.navyd.app.supermarket.user.authentication.DisabledException;
 import cn.navyd.app.supermarket.user.authentication.EmailRegisterService;
+import cn.navyd.app.supermarket.user.authentication.IncorrectPasswordException;
+import cn.navyd.app.supermarket.user.authentication.LockedException;
 import cn.navyd.app.supermarket.user.authentication.RegisterUserForm;
 import cn.navyd.app.supermarket.user.reset.EmailForgotPasswordService;
+import cn.navyd.app.supermarket.user.reset.OldPasswordUserForm;
 import cn.navyd.app.supermarket.user.reset.SecureCodeUserForm;
+import cn.navyd.app.supermarket.util.PageInfo;
+import cn.navyd.app.supermarket.util.PageUtils;
 
 public class UserServiceImplTest extends BaseMockTest {
   private static final PasswordEncoder PASSWORD_ENCODER = PasswordEncoderFactories.createDelegatingPasswordEncoder();
@@ -32,35 +39,62 @@ public class UserServiceImplTest extends BaseMockTest {
   private String registerCode = "1234";
   private String forgotPasswordCode = "4231";
   private UserDO user;
+  private UserDO secondUser;
+  /** 对应user的原始密码*/
+  private final String rawPassword = "1234"; 
   private UserServiceImpl userService;
 
-//  @BeforeEach
-  public void before() {
-    userService = new UserServiceImpl(userDao);
-    userService.setEmailForgotPasswordService(emailForgotPasswordService);
-    userService.setEmailRegisterService(emailRegisterService);
-    userService.setPasswordEncoder(PASSWORD_ENCODER);
-    userService.setRoleService(roleService);
-    
-    when(emailRegisterService.getCode(user.getUsername())).thenReturn(Optional.of(registerCode));
-    // when(userDao.getByUsername(null)).thenThrow(NullPointerException.class);
-    // when(userDao.getByUsername("user")).thenReturn(user);
-    // when(userService.getByUsername("")).thenThrow(IllegalArgumentException.class);
-    // when(userService.getByUsername(null)).thenThrow(NullPointerException.class);
-  }
   
   @BeforeEach
   void setup() {
-    int id = 1;
-    var user = userDao.getByPrimaryKey(id);
+    final int id = 1, secondId = 2;
+    this.user = userDao.getByPrimaryKey(id);
+    this.secondUser = userDao.getByPrimaryKey(secondId);
     assertThat(user).isNotNull();
-    this.user = user;
+    assertThat(secondUser).isNotNull();
     
     userService = new UserServiceImpl(userDao);
     userService.setEmailForgotPasswordService(emailForgotPasswordService);
     userService.setEmailRegisterService(emailRegisterService);
     userService.setPasswordEncoder(PASSWORD_ENCODER);
     userService.setRoleService(roleService);
+  }
+  
+  @Test
+  void listPageTest() {
+    int totalRows = userDao.countTotalRows();
+    int pageNumber = 0, pageSize = 10;
+    PageInfo<UserDO> users = userService.listPage(pageNumber, pageSize);
+    assertThat(users)
+      .isNotNull()
+      .matches(
+          info -> info.getPageNumber() == pageNumber 
+          && info.getPageSize() == pageSize
+          && info.getTotalRows() == totalRows
+          && info.getTotalPages() == PageUtils.getTotalPages(totalRows, pageSize)
+          && info.getOffset() == PageUtils.getOffset(pageNumber, pageSize));
+  }
+  
+  @Test
+  void listPageExceptionTest() {
+    final int pageNumber = Integer.MAX_VALUE, pageSize = 10;
+    assertThatThrownBy(() -> userService.listPage(pageNumber, pageSize)).isInstanceOf(IllegalArgumentException.class);
+  }
+  
+  @Test
+  void listPageLastIdTest() {
+    final int lastId = user.getId();
+    int totalRows = userDao.countRowsByLastId(lastId);
+    int pageNumber = 0, pageSize = 10;
+    PageInfo<UserDO> users = userService.listPage(pageNumber, pageSize, lastId);
+    assertThat(users)
+      .isNotNull()
+      .matches(
+          info -> info.getPageNumber() == pageNumber 
+          && info.getPageSize() == pageSize
+          && info.getTotalRows() == totalRows
+          && info.getTotalPages() == PageUtils.getTotalPages(totalRows, pageSize)
+          && info.getOffset() == PageUtils.getOffset(pageNumber, pageSize));
   }
   
   @Test
@@ -77,13 +111,116 @@ public class UserServiceImplTest extends BaseMockTest {
     assertThatThrownBy(() -> userService.getByEmail(" "))
       .isInstanceOf(IllegalArgumentException.class);
   }
+  
+  @Transactional
+  @Test
+  void saveTest() {
+    String username = getTestData("测试用户");
+    String password = "1234";
+    String email = getTestData("email@aa.com");
+    String phoneNumber = getTestData("00010");
+    String icon = getTestData("/test/1");
+    var user = new UserDO();
+    user.setEmail(email);
+    user.setEnabled(true);
+    user.setHashPassword(PASSWORD_ENCODER.encode(password));
+    user.setIconPath(icon);
+    user.setPhoneNumber(phoneNumber);
+    user.setUsername(username);
+    user.setFailedCount(0);
+    assertThat(user).hasNoNullFieldsOrPropertiesExcept(BASE_PROPERTIES);
+    
+    assertThat(userService.save(user))
+      .isNotNull()
+      .hasNoNullFieldsOrProperties()
+      .isEqualToIgnoringGivenFields(user, BASE_PROPERTIES);
+  }
+  
+  @Transactional
+  @Test
+  void saveDuplicateUsernameTest() {
+    String username = user.getUsername();
+    String password = "1234";
+    String email = getTestData("email@aa.com");
+    String phoneNumber = getTestData("00010");
+    String icon = getTestData("/test/1");
+    var user = new UserDO();
+    user.setEmail(email);
+    user.setEnabled(true);
+    user.setHashPassword(PASSWORD_ENCODER.encode(password));
+    user.setIconPath(icon);
+    user.setPhoneNumber(phoneNumber);
+    user.setUsername(username);
+    user.setFailedCount(0);
+    
+    assertThatThrownBy(() -> userService.save(user)).isInstanceOf(DuplicateUserException.class);
+  }
+  
+  @Transactional
+  @Test
+  void saveOtherExceptionTest() {
+    String username = getTestData("user");
+    String password = "1234";
+    String email = null;
+    String phoneNumber = getTestData("00010");
+    String icon = getTestData("/test/1");
+    var user = new UserDO();
+    user.setEmail(email);
+    user.setEnabled(true);
+    user.setHashPassword(PASSWORD_ENCODER.encode(password));
+    user.setIconPath(icon);
+    user.setPhoneNumber(phoneNumber);
+    user.setUsername(username);
+    user.setFailedCount(0);
+    
+    assertThatThrownBy(() -> 
+    userService.save(user)).isInstanceOf(ServiceException.class);
+  }
+  
+  @Transactional
+  @Test
+  void updateByPrimaryKeyTest() {
+    var updateUser = getUpdateUser();
+    updateUser.setId(user.getId());
+    String[] ignoredProperties = {BASE_PROPERTIES[1], BASE_PROPERTIES[2]};
+    assertThat(updateUser).hasNoNullFieldsOrPropertiesExcept(ignoredProperties);
+    assertThat(userService.updateByPrimaryKey(updateUser))
+      .isNotNull()
+      .isEqualToIgnoringGivenFields(updateUser, ignoredProperties);
+  }
+  
+  @Transactional
+  @Test
+  void updateByPrimaryKeyExceptionTest() {
+    var updateUser = getUpdateUser();
+    updateUser.setId(user.getId());
+    String[] ignoredProperties = {BASE_PROPERTIES[1], BASE_PROPERTIES[2]};
+    assertThat(updateUser).hasNoNullFieldsOrPropertiesExcept(ignoredProperties);
+    
+    // username duplicate
+    updateUser.setUsername(secondUser.getUsername());
+    assertThatThrownBy(() -> userService.updateByPrimaryKey(updateUser)).isInstanceOf(DuplicateUserException.class);
+    
+    // id not found
+    updateUser.setUsername(getTestData("user"));
+    updateUser.setId(Integer.MAX_VALUE);
+    assertThatThrownBy(() -> userService.updateByPrimaryKey(updateUser)).isInstanceOf(UserNotFoundException.class);
+  }
+  
+  @Transactional
+  @Test
+  void removeByPrimaryKeyTest() {
+    int id = user.getId();
+    userService.removeByPrimaryKey(id);
+    assertThat(userService.getByPrimaryKey(id)).isEmpty();
+  }
 
   @Transactional
   @Test
   void registerTest() {
     RegisterUserForm user = new RegisterUserForm();
     user.setEmail("aabb@email.com");
-    user.setUsername("user");
+    user.setUsername(getTestData("user"));
     user.setPassword("password");
     user.setPhoneNumber("13344445555");
     user.setIconPath("/a/b");
@@ -100,6 +237,38 @@ public class UserServiceImplTest extends BaseMockTest {
       .matches(u -> u.getEnabled(), "已激活");
   }
   
+  @Transactional
+  @Test
+  void registerDuplicateUsernameTest() {
+    RegisterUserForm userForm = new RegisterUserForm();
+    // 重复的username
+    userForm.setUsername(user.getUsername());
+    userForm.setEmail("aabb@email.com");
+    userForm.setPassword("password");
+    userForm.setPhoneNumber("13344445555");
+    userForm.setIconPath("/a/b");
+    userForm.setCode(registerCode);
+    
+    assertThatThrownBy(() -> userService.register(userForm))
+      .isInstanceOf(DuplicateUserException.class);
+  }
+  
+  @Transactional
+  @Test
+  void registerDuplicateEmailTest() {
+    RegisterUserForm userForm = new RegisterUserForm();
+    // 重复的username
+    userForm.setUsername(getTestData("user"));
+    userForm.setEmail(user.getEmail());
+    userForm.setPassword("password");
+    userForm.setPhoneNumber("13344445555");
+    userForm.setIconPath("/a/b");
+    userForm.setCode(registerCode);
+    
+    assertThatThrownBy(() -> userService.register(userForm))
+      .isInstanceOf(DuplicateUserException.class);
+  }
+  
   @Test
   void sendRegisteringCodeByEmail() {
     String email = "232@qq.com";
@@ -111,6 +280,17 @@ public class UserServiceImplTest extends BaseMockTest {
       .isInstanceOf(DuplicateUserException.class);
   }
 
+  @Test
+  void sendForgotPasswordCodeByEmailTest() {
+    String email = user.getEmail();
+    userService.sendForgotPasswordCodeByEmail(email);
+    verify(emailForgotPasswordService).sendCode(email);
+    
+    // 未知的email
+    assertThatThrownBy(() -> userService.sendForgotPasswordCodeByEmail(getTestData("aa@aa.com")))
+      .isInstanceOf(UserNotFoundException.class);
+  }
+  
   @Transactional
   @Test
   void resetPasswordWithCodeTest() {
@@ -123,35 +303,125 @@ public class UserServiceImplTest extends BaseMockTest {
       .thenReturn(Optional.of(forgotPasswordCode));
     
     var resetedUser = userService.resetPassword(userForm);
-    
     assertThat(resetedUser)
       .isNotNull()
       .isEqualToIgnoringGivenFields(user, "hashPassword", BASE_PROPERTIES[2])
-      .matches(u -> !u.getHashPassword().equals(user.getHashPassword()), "更新后的密码成功");
+      .matches(
+          u -> !u.getHashPassword().equals(user.getHashPassword()) 
+          && PASSWORD_ENCODER.matches(userForm.getNewPassword(), u.getHashPassword()), 
+          "更新后的密码成功");
   }
   
-//   private UserDO getWholeUser() {
-//     String username = getTestData("测试用户");
-//     String password = getTestData("1234");
-//     String email = getTestData("email@aa.com");
-//     String phoneNumber = getTestData("00010");
-//     String icon = getTestData("/test/1");
-//     boolean enabled = true;
-//     int failedCount = 1;
-//     int id = Integer.MAX_VALUE;
-//     LocalDateTime now = LocalDateTime.now();
-//     var user = new UserDO();
-//     user.setId(id);
-//     user.setEmail(email);
-//     user.setEnabled(enabled);
-//     user.setHashPassword(password);
-//     user.setIconPath(icon);
-//     user.setPhoneNumber(phoneNumber);
-//     user.setUsername(username);
-//     user.setEnabled(enabled);
-//     user.setFailedCount(failedCount);
-//     user.setGmtCreate(now);
-//     user.setGmtModified(now);
-//     return user;
-//   }
+  @Transactional
+  @Test
+  void resetPasswordWithOldPasswordTest() {
+    OldPasswordUserForm userForm = new OldPasswordUserForm();
+    userForm.setId(user.getId());
+    userForm.setNewPassword("1234321");
+    userForm.setOldPassword(rawPassword);
+    
+    var resetedUser = userService.resetPassword(userForm);
+    assertThat(resetedUser)
+      .isNotNull()
+      .matches(
+          u -> PASSWORD_ENCODER.matches(userForm.getNewPassword(), resetedUser.getHashPassword())
+          && !u.getHashPassword().equals(user.getHashPassword()),
+          "更新密码成功");
+  }
+  
+  @Transactional
+  @Test
+  void resetPasswordWithOldPasswordFailedTest() {
+    OldPasswordUserForm userForm = new OldPasswordUserForm();
+    String rawPasswordFailed = getTestData("passw");
+    userForm.setId(user.getId());
+    userForm.setNewPassword("1234321");
+    userForm.setOldPassword(rawPasswordFailed);
+    assertThatThrownBy(() -> userService.resetPassword(userForm)).isInstanceOf(IncorrectPasswordException.class);
+    
+    // 新旧密码相同
+    userForm.setNewPassword(rawPassword);
+    userForm.setOldPassword(rawPassword);
+    assertThatThrownBy(() -> userService.resetPassword(userForm)).isInstanceOf(IllegalArgumentException.class);
+  }
+  
+  @Transactional
+  @Test
+  void loginTest() {
+    String username = user.getUsername(), rawPassword = this.rawPassword;
+    var loginedUser = userService.login(username, rawPassword);
+    assertThat(loginedUser)
+      .isNotNull()
+      .matches(u -> u.getUsername().equals(user.getUsername()) && u.getFailedCount() == 0);
+  }
+  
+  @Transactional
+  @Test
+  void loginFailedCountTest() {
+    final String username = user.getUsername(), rawPasswordFailed = "asdfadsfas";
+    final int failedLoop = 5;
+    for (int i = 0; i < failedLoop; i++) {
+      assertThatThrownBy(() -> userService.login(username, rawPasswordFailed))
+        .isInstanceOf(IncorrectPasswordException.class);
+      final int times = i;
+      assertThat(userService.getByUsername(username))
+        .isNotNull()
+        .matches(u -> u.get().getFailedCount()-1 == times);
+    }
+    
+    // 错误登录次数过多，锁定
+    assertThatThrownBy(() -> userService.login(username, rawPasswordFailed))
+      .isInstanceOf(LockedException.class);
+  }
+  
+  @Transactional
+  @Test
+  void loginPasswordFailedThenSuccessfulTest() {
+    final String username = user.getUsername(), rawPasswordFailed = "asdfadsfas";
+    assertThatThrownBy(() -> userService.login(username, rawPasswordFailed))
+      .isInstanceOf(IncorrectPasswordException.class);
+    
+    assertThat(userService.getByUsername(username))
+      .isNotNull()
+      .matches(u -> u.get().getFailedCount() == 1);
+      
+    var loginedUser = userService.login(username, rawPassword);
+    assertThat(loginedUser)
+      .isNotNull()
+      .matches(u -> u.getFailedCount() == 0);
+  }
+  
+  @Test
+  void loginUsernameFailedThenSuccessfulTest() {
+    final String username = getTestData("username");
+    assertThatThrownBy(() -> userService.login(username, rawPassword))
+      .isInstanceOf(UserNotFoundException.class);
+  }
+  
+  @Transactional
+  @Test
+  void loginUnenabledTest() {
+    var updateUneabledUser = new UserDO();
+    updateUneabledUser.setId(user.getId());
+    updateUneabledUser.setEnabled(false);
+    
+    userService.updateByPrimaryKey(updateUneabledUser);
+    assertThatThrownBy(() -> userService.login(user.getUsername(), rawPassword))
+      .isInstanceOf(DisabledException.class);
+  }
+  
+  UserDO getUpdateUser() {
+    String password = "1234";
+    var updateUser = new UserDO();
+    updateUser.setId(user.getId());
+    updateUser.setEmail(getTestData("aa@email.com"));
+    updateUser.setEnabled(true);
+    updateUser.setHashPassword(PASSWORD_ENCODER.encode(password));
+    updateUser.setIconPath(getTestData("/test/1"));
+    updateUser.setPhoneNumber(getTestData("00010"));
+    updateUser.setUsername(getTestData("user"));
+    updateUser.setFailedCount(0);
+    assertThat(updateUser).hasNoNullFieldsOrPropertiesExcept(BASE_PROPERTIES[1], BASE_PROPERTIES[2]);
+    return updateUser;
+  }
 }
