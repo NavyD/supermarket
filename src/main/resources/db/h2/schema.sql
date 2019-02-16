@@ -33,4 +33,34 @@ create table user_role (
 	gmt_create DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     gmt_modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
-create unique index uk_userid_roleid on user_role(user_id, role_id)
+create unique index uk_userid_roleid on user_role(user_id, role_id);
+
+drop table if exists product;
+create table product(
+    id int unsigned auto_increment primary key,
+    product_name varchar(100) not null,
+    -- 产品图标
+    icon_path varchar(255) not null,
+    -- 图片路径
+    images_path varchar(255) default null,
+    -- 生产日期
+    production_date date not null,
+    -- 保质期
+    shelf_life smallint unsigned not null default 65535,
+    -- 单位 如一件，一对
+    product_unit smallint unsigned not null,
+    -- 重量
+    weight float unsigned not null,
+    -- 重量单位
+    weight_unit smallint not null,
+    -- 关联分类id
+    product_category_id int unsigned not null,
+    -- 供应商
+    supplier_id int unsigned not null,
+    gmt_create datetime not null default current_timestamp,
+    gmt_modified datetime not null default current_timestamp on update current_timestamp,
+);
+create unique index uk_productname on product(product_name);
+create index idx_supplierid on product(supplier_id);
+create index idx_productcategoryid on product(product_category_id);
+
