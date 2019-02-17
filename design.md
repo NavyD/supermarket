@@ -118,7 +118,16 @@ create unique index uk_userid_roleid on user_role(user_id, role_id);
 
 ## Category
 
-使用邻接表结构。由于目录结构修改及少，查询较多，可以使用缓存忽略递归查询的消耗
+使用邻接表结构。由于目录结构修改较少，查询较多，可以使用缓存忽略递归查询的消耗
+
+### DAO API
+
+```java
+// 获取当前节点下的孩子节点
+Collection<ProductCategory> listChildrenByPrimaryKey(Integer id);
+// 获取当前节点下所有孩子节点
+Collection<ProductCategory> listAllChildrenByPrimaryKey(Integer id);
+```
 
 ### 查询
 
@@ -169,6 +178,8 @@ insert into product_category(id, category_name, parent_id) values (1,'食品',0)
 
 ### 基于ClosureTable的无限级分类存储
 
+已放弃该方案，该方案存在非常多的冗余，树越深则冗余数据越多
+
 对于如下数据
 
 ```
@@ -188,7 +199,6 @@ insert into category_closure(ancestor, descendant, distance) values
 (1, 1, 0)
 (0, 2, 1)
 (1, 2, 1)
-()
 ```
 
 #### 数据表
@@ -221,9 +231,61 @@ create unique index uk_ancestor_descendant_distance on category_closure(ancestor
 - [Closure Tables for Browsing Trees in SQL](https://coderwall.com/p/lixing/closure-tables-for-browsing-trees-in-sql)
 - [How to create a MySQL hierarchical recursive query](https://stackoverflow.com/a/33737203/8566831)
 
+## Image
+
+为user、product等提供图片服务。
+
+该服务应该能够允许通过配置更改图片来源，如主机、图片路径
+
+默认的图片路径为：`[protocol]://[host]/images/{products|users}/id`
+
+如果允许多种图片，应该定义不同的文件名
+
+```java
+class mageConfigProperties {
+    private String host;
+    private String basePath;
+}
+
+interface ImagePath<T extends PrimaryKey> {
+    // 获取图片所在路径
+    Path getPath(T key);
+}
+
+interface UserImagePath extends ImagePath<UserDO> {
+    // 获取头像文件路径
+    Path getProfilePhotoPath(UserDO user);
+}
+
+interface ProductImagePath extends ImagePath<UserDO> {
+    // 获取主图
+    Path getMainPath(UserDO user);
+}
+```
+
 ## Product
 
 商品，仅表示商品本身信息，额外的信息由其他表定义。如数量，价格
+
+```java
+public interface ProductInfo extends PrimaryKey {
+  String getName();
+  
+  LocalDate getProductionDate();
+  
+  Integer getShelfLife();
+  
+  Integer getSpecification();
+  
+  ProductSpecificationUnitEnum getProductSpecificationUnit();
+  
+  default boolean isExpired() {
+    return getProductionDate()
+        .plusDays(getShelfLife())
+        .isBefore(LocalDate.now());
+  }
+}
+```
 
 ### 图片
 
@@ -237,18 +299,27 @@ create unique index uk_ancestor_descendant_distance on category_closure(ancestor
 
 ### 过期
 
-实现商品过期功能。记录商品生产日期与保质期时间，
+实现商品过期功能。记录商品生产日期与保质期时间
 
-### 重量
+仅支持时间单位 天
 
-记录商品重量与单位。可以使用重量实现功能，仓库重量限制，重量计价等
-
-#### 单位
+### 产品单位
 
 ```java
-@Getter
-public enum ProductWeightUnitEnum {
-  MICROGRAM(1), GRAM(2), KILOGRAM(3), TONNE(4);
+
+```
+
+### 规格
+
+```java
+public enum ProductSpecificationUnitEnum {
+    // 重量单位
+  MICROGRAM(1), GRAM(2), KILOGRAM(3), TONNE(4),
+  // 容积单位
+    MILLILITER(11), LITER(12),
+    // 长度单位
+    MILLIMETER(21),CENTIMETER(22),DECIMETRE(23),METER(24),KILOMETER(25)
+    ;
   
   private final int sequence;
   
@@ -275,12 +346,12 @@ create table product(
     production_date date not null,
     -- 保质期
     shelf_life smallint unsigned not null default 65535,
-    -- 单位 如一件，一对
+    -- 产品单位
     product_unit tinyint unsigned not null,
-    -- 重量
-    weight float unsigned not null,
-    -- 重量单位
-    weight_unit tinyint unsigned not null,
+    -- 规格
+    specification int unsigned not null,
+    -- 规格单位
+    specification_unit tinyint unsigned not null,
     -- 关联分类id
     product_category_id int unsigned not null,
     -- 供应商
@@ -292,7 +363,7 @@ create unique index uk_productname on product(product_name);
 create index idx_supplierid on product(supplier_id);
 create index idx_productcategoryid on product(product_category_id);
 
-insert into product(product_name, production_date, shelf_life, product_unit, weight, weight_unit, product_category_id, supplier_id) values
+insert into product(product_name, production_date, shelf_life, product_unit, specification, specification_unit, product_category_id, supplier_id) values
 ('小龙虾', '2018-07-06', 100, 1, 500, 2, 1, 1),
 ('酸菜鱼','2018-07-12', 50, 1, 88.88, 2, 1, 1),
 ('可口可乐','2018-06-01', 190, 1, 240, 2, 1, 1);
@@ -338,28 +409,20 @@ create index idx_productid on shelf_product(product_id);
 
 仓库，保存商品的仓库
 
-### 重量
-
-仓库不保存重量单位，可以在service中默认指定一个单位，如千克，当保存商品时需要转换单位并检查是否超出
-
 ```sql
 drop table if exists repository;
 create table repository(
     id int unsigned auto_increment primary key,
     repository_name varchar(50) not null,
-    -- 单个仓库重量限制
-    max_weight int unsigned not null default 4294967295,
-    min_weight int unsigned not null default 0,
-    weight_unit tinyint unsigned not null,
     gmt_create datetime not null default current_timestamp,
-    gmt_modified datetime not null default current_timestamp on update current_timestamp,
+    gmt_modified datetime not null default current_timestamp on update current_timestamp
 );
 create unique index repositoryname on repository(repository_name);
 ```
 
 ### repository item
 
-仓库商品重量、数量限制，允许对一种商品管理重量、数量
+仓库商品重量、数量限制，允许对一种商品管理数量
 
 ```sql
 drop table if exists repository_item;
@@ -368,10 +431,6 @@ create table repository_item(
     product_id int unsigned not null,
     repository_id int unsigned not null,
     quantity smallint unsigned not null default 0,
-    -- 重量限制
-    max_weight int unsigned not null default 4294967295,
-    min_weight int unsigned not null default 0,
-    weight_unit tinyint unsigned not null,
     -- 数量限制
     max_quantity smallint unsigned not null  default 65535,
     min_quantity smallint unsigned not null default 0,
