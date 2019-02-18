@@ -1,5 +1,9 @@
 # Design
 
+本系统设计为完整的电商系统即包含后台管理+销售系统
+
+# 后台设计
+
 ## User Module
 
 ### password
@@ -126,7 +130,7 @@ create unique index uk_userid_roleid on user_role(user_id, role_id);
 // 获取当前节点下的孩子节点
 Collection<ProductCategory> listChildrenByPrimaryKey(Integer id);
 // 获取当前节点下所有孩子节点
-Collection<ProductCategory> listAllChildrenByPrimaryKey(Integer id);
+Collection<ProductCategory> listDescendantsByPrimaryKey(Integer id);
 ```
 
 ### 查询
@@ -237,30 +241,42 @@ create unique index uk_ancestor_descendant_distance on category_closure(ancestor
 
 该服务应该能够允许通过配置更改图片来源，如主机、图片路径
 
-默认的图片路径为：`[protocol]://[host]/images/{products|users}/id`
+默认的图片路径为：`[protocol]://[host]/pictures/{products|users}/id`
 
 如果允许多种图片，应该定义不同的文件名
 
 ```java
-class mageConfigProperties {
-    private String host;
-    private String basePath;
+public interface PicturePathStrategy<T> {
+  /**
+   * 获取图片文件夹所在路径
+   * @param key
+   * @return
+   */
+  Path getPicturePath(T key);
+}
+public interface ProductPicturePathStrategy extends PicturePathStrategy<Integer> {
+  /**
+   * 获取主图文件路径
+   * @param user
+   * @return
+   */
+  Path getMainPicturePath(UserDO user);
+  /**
+   *  获取其他图片文件的路径，
+   * @param user
+   * @return
+   */
+  Collection<Path> getSubPicturePaths(UserDO user);
+}
+public interface UserPicturePathStrategy extends PicturePathStrategy<Integer> {
+  /**
+   * 获取用户头像文件路径
+   * @param user
+   * @return
+   */
+  Path getProfilePhotoPath(Integer id);
 }
 
-interface ImagePath<T extends PrimaryKey> {
-    // 获取图片所在路径
-    Path getPath(T key);
-}
-
-interface UserImagePath extends ImagePath<UserDO> {
-    // 获取头像文件路径
-    Path getProfilePhotoPath(UserDO user);
-}
-
-interface ProductImagePath extends ImagePath<UserDO> {
-    // 获取主图
-    Path getMainPath(UserDO user);
-}
 ```
 
 ## Product
@@ -291,11 +307,11 @@ public interface ProductInfo extends PrimaryKey {
 
 支持上传图片，允许多张图片，数据库不保存实际的图片地址路径，具体的逻辑交给service
 
-可能存在多种类型图片，如icon，用于展示略缩图，image用于展示具体产品图
+可能存在多种类型图片，如main picture表示主图,sub picture用于展示具体产品图
 
 可以使用在service中获取部分特定的图片，不需要存储不同的图片类型
 
-具体的地址逻辑可以是：在某个指定路径下存储与product_id的路径如`/images/products/{id}`
+具体的地址逻辑可以是：在某个指定路径下存储与product_id的路径如`/pictures/products/{id}`
 
 ### 过期
 
@@ -305,11 +321,11 @@ public interface ProductInfo extends PrimaryKey {
 
 ### 产品单位
 
-```java
-
-```
+用于显示产品单位，并无实际功能
 
 ### 规格
+
+使用一个`specification int`字段表示规格数值，SpecificationUnit表示单位。该字段也仅用于显示，暂时无实际功能
 
 ```java
 public enum ProductSpecificationUnitEnum {
@@ -327,12 +343,6 @@ public enum ProductSpecificationUnitEnum {
     this.sequence = sequence;
   }
 }
-```
-
-### api
-
-```java
-boolean isExpired();
 ```
 
 ### 数据表
@@ -354,8 +364,10 @@ create table product(
     specification_unit tinyint unsigned not null,
     -- 关联分类id
     product_category_id int unsigned not null,
+    product_category_name varchar(20) not null,
     -- 供应商
     supplier_id int unsigned not null,
+    supplier_name varchar(100) not null,
     gmt_create datetime not null default current_timestamp,
     gmt_modified datetime not null default current_timestamp on update current_timestamp
 );
@@ -369,9 +381,9 @@ insert into product(product_name, production_date, shelf_life, product_unit, spe
 ('可口可乐','2018-06-01', 190, 1, 240, 2, 1, 1);
 ```
 
-### shelf
+### 上架商品
 
-货架，上架销售的商品
+货架，上架销售的商品。即电商系统展示时使用的商品
 
 价格
 
@@ -380,29 +392,43 @@ insert into product(product_name, production_date, shelf_life, product_unit, spe
 #### 数据表
 
 ```sql
-drop table if exists shelf;
-create table shelf(
-    id int unsigned auto_increment primary key,
-    shelf_name varchar(50) not null,
-    gmt_create datetime not null default current_timestamp,
-    gmt_modified datetime not null default current_timestamp on update current_timestamp,
-);
-create unique index uk_shelfname on shelf(shelf_name);
-
-drop table if exists shelf_item;
-create table shelf_item(
+drop table if exists shelved_product;
+create table shelved_product(
     id int unsigned auto_increment primary key,
     -- 上架价格
     retail_price decimal(15, 2) unsigned not null default 0.00,
     promotional_price decimal(15,2) unsigned not null default 0.00,
     vip_price decimal(15,2) unsigned not null default 0.00,
     -- 上架数量
-    quantity smallint unsigned not null default 0,
+    quantity int unsigned not null default 0,
     product_id int unsigned not null,
+    product_name varchar(100) not null,
     gmt_create datetime not null default current_timestamp,
-    gmt_modified datetime not null default current_timestamp on update current_timestamp,
+    gmt_modified datetime not null default current_timestamp on update current_timestamp
 );
-create index idx_productid on shelf_product(product_id);
+-- 货架商品 唯一
+create unique index uk_productid on shelved_product(product_id);
+```
+
+## 购物车
+
+顾客的购物车，在上架商品中选择
+
+```sql
+drop table if exists shopping_cart;
+create table shopping_cart(
+    id int unsigned auto_increment primary key,
+    customer_id int unsigned not null,
+    -- 不设计冗余，购物车需要许多信息
+    shelved_product_id int unsigned not null,
+    is_checked tinyint unsigned not null,
+    -- 选择的数量
+    quantity int unsigned not null default 0,
+    gmt_create datetime not null default current_timestamp,
+    gmt_modified datetime not null default current_timestamp on update current_timestamp
+);
+-- 货架商品 唯一
+create unique index uk_customerid_shelvedproductid on shopping_cart(customer_id, shelved_product_id);
 ```
 
 ## repository
@@ -417,7 +443,7 @@ create table repository(
     gmt_create datetime not null default current_timestamp,
     gmt_modified datetime not null default current_timestamp on update current_timestamp
 );
-create unique index repositoryname on repository(repository_name);
+create unique index uk_repositoryname on repository(repository_name);
 ```
 
 ### repository item
@@ -430,10 +456,10 @@ create table repository_item(
     id int unsigned auto_increment primary key,
     product_id int unsigned not null,
     repository_id int unsigned not null,
-    quantity smallint unsigned not null default 0,
+    quantity int unsigned not null default 0,
     -- 数量限制
-    max_quantity smallint unsigned not null  default 65535,
-    min_quantity smallint unsigned not null default 0,
+    max_quantity int unsigned not null  default 65535,
+    min_quantity int unsigned not null default 0,
     gmt_create datetime not null default current_timestamp,
     gmt_modified datetime not null default current_timestamp on update current_timestamp,
 );
@@ -523,13 +549,9 @@ insert into supplier_record (time_supplied, unit_price_supply, unit_price_return
 
 所有类型都需要一个订单编号
 
-- 商品入库
+- 商品入库：包括进货、下架、商品转库、销售退货
 
-进货、下架、商品转库
-
-- 商品出库
-
-上架、进货商品回退、商品转库
+- 商品出库：包括进货商品回退、上架、商品转库
 
 如果本系统要扩展为一个后台管理+电商组合系统，后台管理应该提供货物即可，即将库存的货供给到电商系统中。电商系统从后台系统api获取库存并销售
 
@@ -593,7 +615,7 @@ create table purchase_order_item(
     product_id int unsigned not null,
     product_name varchar(100) not null,
     unit_price decimal(15, 2) not null,
-    quantity smallint unsigned not null,
+    quantity int unsigned not null,
     -- 表示 小计价格
     total_price decimal(15, 2) not null,
     gmt_create datetime not null default current_timestamp,
@@ -636,7 +658,7 @@ create table purchase_return_order_item(
     product_name varchar(100) not null,
     -- 退货单价
     unit_price decimal(15, 2) not null,
-    quantity smallint unsigned not null,
+    quantity int unsigned not null,
     -- 表示 小计价格
     total_price decimal(15, 2) not null,
     gmt_create datetime not null default current_timestamp,
@@ -646,32 +668,20 @@ create table purchase_return_order_item(
 
 #### 货架订单
 
+@deprecated 不再需要货架订单，因为上架是出库操作，并且不再存在货架的概念，上架订单都作为上架商品处理
+
 该订单表示对货架进行上下架操作，需要结合库存记录表一起完成。如果inventory_record.is_outbound=true则表示为上架订单，否则下架
 
 订单item只有shelf_id而没有repository_id，因为需要使用库存记录表入库出库
 
 ```sql
-/*
-
-create table shelf_order(
-    id int unsigned auto_increment primary key,
-    order_no bigint unsigned not null,
-    -- 上架
-    is_shelved tinyint unsigned not null,
-    -- 操作人id
-    user_id int unsigned not null,
-    gmt_create datetime not null default current_timestamp,
-    gmt_modified datetime not null default current_timestamp on update current_timestamp
-);
-
-*/
-
+-- @deprecated
 create table shelf_order_item(
     id int unsigned auto_increment primary key,
     -- 具体货架 下架则表示从该货架取出，上架则到该货架上
     shelf_id int unsigned not null,
     product_id int unsigned not null,
-    quantity smallint unsigned not null,
+    quantity int unsigned not null,
     -- 库存记录
     inventory_record_id int unsigned not null,
     gmt_create datetime not null default current_timestamp,
@@ -714,7 +724,7 @@ create table inventory_record_item(
     repository_id int unsigned not null,
     -- 商品
     product_id int unsigned not null,
-    quantity smallint unsigned not null,
+    quantity int unsigned not null,
     inventory_record_id int unsigned not null,
     gmt_create datetime not null default current_timestamp,
     gmt_modified datetime not null default current_timestamp on update current_timestamp
@@ -734,4 +744,106 @@ create table order_review_record(
     gmt_create datetime not null default current_timestamp,
     gmt_modified datetime not null default current_timestamp on update current_timestamp
 )
+```
+
+# 电商设计
+
+## 顾客
+
+顾客购买上架的商品
+
+```sql
+create table customer(
+    id int unsigned auto_increment primary key,
+    customer_name varchar(50) not null,
+    gmt_create datetime not null default current_timestamp,
+    gmt_modified datetime not null default current_timestamp on update current_timestamp
+)
+```
+
+## 问题
+
+- service中dao的封装重复问题
+
+由于存在大量重复代码，如dao.update, remove, get, list等公共方法，不能使得每个service封装都重新实现一遍
+
+可以使用抽象，将大量重复的方法抽象为一个接口即可
+
+将dao的只读方法抽象为接口ReadOnlyDao，可以解决service中表关联id验证的强耦合问题，不会在产生service依赖service，也不会service依赖的关联dao具有更新的能力，防止错误的调用。
+
+**DAO**
+
+```java
+interface ReadOnlyDao<T> {
+    Integer count();
+    T get();
+    Collection<T> list();
+}
+
+interface BaseDao<T> extends ReadOnlyDao<T> {
+    void save(T bean);
+    void update(T bean);
+    void remove(Integer id);
+}
+```
+
+**Service**
+
+抽象一个基本service，然后使用个抽象类，封装简单的BaseDao的调用。注意：具体的service可能存在某些特别的get*，但是不多，这些将会与业务方法混合在一个类中，但是应该还行，这些get*一定程度上也是业务方法，但是
+
+```java
+interface BasicService<T> {
+    Optional<T> get();
+    Collection<T> list();
+    T save(T bean);
+    T update(T bean);
+    void remove(Integer id);
+}
+
+abstract class AbstractBasicService<T> implements BasicService<T> {
+}
+```
+
+- 数据表中冗余字段的更新问题
+
+对于表的某个字段，可能会在多个表中存在冗余，不能使用硬编码的方法在service中直接调用更新冗余的service。一旦增加一个表，或删除某个表，都需要直接修改service.
+
+可以考虑使用观察者模式，将更新的职责分离，虽然还是硬编码，但是非常容易修改
+
+```java
+class ProductCategoryServiceImpl extends AbstractBasicService implements ProductService<ProductDO> {
+    final Observer<ProductDO> productObserver = (original, updated) -> {
+            if (original.name == updated.name)
+                return;
+            // 更新冗余字段
+            ProductDO p;
+            p.productCategoryName = updated.name;
+            productService.updateByPrimaryKey(p);
+        };
+    // 该表product冗余字段product_category_name，在product_category.name更新后将会通知productService更新对应字段
+    Collection<Observer> getUpdateObservers() {
+        return Arrays.asList(productCategoryObserver);
+    }
+}
+
+// 伪代码
+abstract class AbstractBasicService<T> implements BasicService<T> {
+    protected Observable<T> updateObservable() {
+        return new Observable<T>({
+            register(updateObservers());
+        });
+    }
+    // 观察移除方法
+    protected Collection<Observer<T>> getRemoveObservers() {
+    // 观察更新方法，当该类更新后将会通知该方法返回的Observer
+    protected Collection<Observer<T>> getUpdateObservers() {
+        return Collections.emptyList();
+    }
+    // 伪代码示例
+    void update(T bean) {
+        // ... 更新成功
+        // 更新动作
+        updateObservable().changed().notifyObserver(original, updated);
+    }
+}
 ```
