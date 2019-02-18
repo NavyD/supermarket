@@ -3,6 +3,12 @@ package cn.navyd.app.supermarket.product;
 import static com.google.common.base.Preconditions.checkArgument;
 import lombok.Getter;
 
+/**
+ * @deprecated 该类已弃用
+ * @author navyd
+ *
+ */
+@Deprecated
 @Getter
 public enum ProductWeightUnitEnum {
   MICROGRAM(1), GRAM(2), KILOGRAM(3), TONNE(4);
