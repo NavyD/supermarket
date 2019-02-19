@@ -2,7 +2,7 @@
 
 本系统设计为完整的电商系统即包含后台管理+销售系统
 
-# 后台设计
+考虑到目前能力的限制，仅设计后台管理系统，如果以后加入电商销售系统，会出现共享数据的情况，如商品信息、分类信息等，可能需要以微服务的形式提供消息，而当前不存在这样的能力，仅设计好后台管理系统即可，稍微考虑另一个系统的存在即可。
 
 ## User Module
 
@@ -410,27 +410,6 @@ create table shelved_product(
 create unique index uk_productid on shelved_product(product_id);
 ```
 
-## 购物车
-
-顾客的购物车，在上架商品中选择
-
-```sql
-drop table if exists shopping_cart;
-create table shopping_cart(
-    id int unsigned auto_increment primary key,
-    customer_id int unsigned not null,
-    -- 不设计冗余，购物车需要许多信息
-    shelved_product_id int unsigned not null,
-    is_checked tinyint unsigned not null,
-    -- 选择的数量
-    quantity int unsigned not null default 0,
-    gmt_create datetime not null default current_timestamp,
-    gmt_modified datetime not null default current_timestamp on update current_timestamp
-);
--- 货架商品 唯一
-create unique index uk_customerid_shelvedproductid on shopping_cart(customer_id, shelved_product_id);
-```
-
 ## repository
 
 仓库，保存商品的仓库
@@ -666,29 +645,6 @@ create table purchase_return_order_item(
 )
 ```
 
-#### 货架订单
-
-@deprecated 不再需要货架订单，因为上架是出库操作，并且不再存在货架的概念，上架订单都作为上架商品处理
-
-该订单表示对货架进行上下架操作，需要结合库存记录表一起完成。如果inventory_record.is_outbound=true则表示为上架订单，否则下架
-
-订单item只有shelf_id而没有repository_id，因为需要使用库存记录表入库出库
-
-```sql
--- @deprecated
-create table shelf_order_item(
-    id int unsigned auto_increment primary key,
-    -- 具体货架 下架则表示从该货架取出，上架则到该货架上
-    shelf_id int unsigned not null,
-    product_id int unsigned not null,
-    quantity int unsigned not null,
-    -- 库存记录
-    inventory_record_id int unsigned not null,
-    gmt_create datetime not null default current_timestamp,
-    gmt_modified datetime not null default current_timestamp on update current_timestamp
-)
-```
-
 ### 转库
 
 转库功能使用库存记录表实现，只需要使用一个额外的订单号
@@ -741,21 +697,6 @@ create table order_review_record(
     is_passed tinyint unsigned not null default 0,
     -- 核查人
     user_id int unsigned not null,
-    gmt_create datetime not null default current_timestamp,
-    gmt_modified datetime not null default current_timestamp on update current_timestamp
-)
-```
-
-# 电商设计
-
-## 顾客
-
-顾客购买上架的商品
-
-```sql
-create table customer(
-    id int unsigned auto_increment primary key,
-    customer_name varchar(50) not null,
     gmt_create datetime not null default current_timestamp,
     gmt_modified datetime not null default current_timestamp on update current_timestamp
 )
