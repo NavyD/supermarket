@@ -1,7 +1,8 @@
 package cn.navyd.app.supermarket.util;
 
-import static com.google.common.base.Preconditions.checkNotNull; 
+import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,6 +49,38 @@ public class EnumUtils {
       }
     }
     return false;
+  }
+  
+  /**
+   * 在enumSequencerClass类中查找指定的sequnce对应的Enum实例.如果不存在则返回empty。默认要求EnumSequencer是唯一的
+   * @see #ofSequence(Class, int, boolean)
+   * @param enumSequencerClass
+   * @param sequence
+   * @return
+   */
+  public static <T extends Enum<?> & EnumSequencer> Optional<T> ofSequence(Class<T> enumSequencerClass, int sequence) {
+    return ofSequence(enumSequencerClass, sequence, true);
+  }
+  /**
+   * 在enumSequencerClass类中查找指定的sequnce对应的Enum实例.如果不存在则返回empty。如果指定requiredUnique=true则表示检查EnumSequencer是否唯一，如果不是则抛出异常
+   * <p>如果EnumSequencer不是唯一的，则返回的对象不确定
+   * 
+   * @param enumSequencerClass
+   * @param sequence
+   * @param requiredUnique
+   * @return
+   */
+  
+  public static <T extends Enum<?> & EnumSequencer> Optional<T> ofSequence(Class<T> enumSequencerClass, int sequence, boolean requiredUnique) {
+    checkNotNull(enumSequencerClass);
+    if (requiredUnique)
+      checkUniqueEnumSequencer(enumSequencerClass);
+    T[] enumConsts = enumSequencerClass.getEnumConstants();
+    for (T e : enumConsts) {
+      if (e.getSequence() == sequence)
+        return Optional.of(e);
+    }
+    return Optional.empty();
   }
   
   /**
