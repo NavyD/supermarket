@@ -8,6 +8,7 @@ import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import cn.navyd.app.supermarket.BaseMarker;
+import cn.navyd.app.supermarket.util.typehandler.EnumSequencerTypeHandler;
 
 @Configuration
 @MapperScan(annotationClass=Mapper.class, basePackageClasses=BaseMarker.class)
@@ -22,6 +23,7 @@ public class MyBatisConfig {
         config.setUseGeneratedKeys(true);
         config.setUseColumnLabel(true);
         config.setMapUnderscoreToCamelCase(true);
+        config.getTypeHandlerRegistry().setDefaultEnumTypeHandler(EnumSequencerTypeHandler.class);
         bean.setConfiguration(config);
         return bean;
     }
