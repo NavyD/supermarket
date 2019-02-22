@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import cn.navyd.app.supermarket.base.NotFoundException;
-import cn.navyd.app.supermarket.util.ResultVO;
+import cn.navyd.app.supermarket.util.ResponseResult;
 
 @Configuration
 public class MvcConfig implements WebMvcConfigurer {
@@ -32,8 +32,8 @@ public class MvcConfig implements WebMvcConfigurer {
 
         @ExceptionHandler(NotFoundException.class)
         @ResponseStatus(NOT_FOUND)
-        public ResultVO<Void> handleNotFoundException(NotFoundException ex) {
-            return ResultVO.ofError(getReadableMessage(ex));
+        public ResponseResult<Void> handleNotFoundException(NotFoundException ex) {
+            return ResponseResult.ofError(getReadableMessage(ex));
         }
 
         /**
@@ -44,8 +44,8 @@ public class MvcConfig implements WebMvcConfigurer {
          */
         @ResponseStatus(UNPROCESSABLE_ENTITY)
         @ExceptionHandler(IllegalArgumentException.class)
-        public ResultVO<Void> handleIllegalArgumentException(IllegalArgumentException ex) {
-            return ResultVO.ofError(getReadableMessage(ex));
+        public ResponseResult<Void> handleIllegalArgumentException(IllegalArgumentException ex) {
+            return ResponseResult.ofError(getReadableMessage(ex));
         }
 
         private String getReadableMessage(Exception ex) {

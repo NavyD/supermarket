@@ -1,7 +1,7 @@
 package cn.navyd.app.supermarket.user;
 
-import cn.navyd.app.supermarket.util.Converter;
-import cn.navyd.common.util.beans.BeanUtils;
+import org.springframework.beans.BeanUtils;
+import cn.navyd.app.supermarket.util.Converter; 
 
 public class UserDO2UserVOConverter implements Converter<UserDO, UserVO> {
 

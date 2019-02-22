@@ -434,13 +434,15 @@ drop table if exists repository_item;
 create table repository_item(
     id int unsigned auto_increment primary key,
     product_id int unsigned not null,
+    product_name varchar(100) not null,
     repository_id int unsigned not null,
+    repository_name varchar(50) not null,
     quantity int unsigned not null default 0,
     -- 数量限制
     max_quantity int unsigned not null  default 65535,
     min_quantity int unsigned not null default 0,
     gmt_create datetime not null default current_timestamp,
-    gmt_modified datetime not null default current_timestamp on update current_timestamp,
+    gmt_modified datetime not null default current_timestamp on update current_timestamp
 );
 create unique index uk_repositoryid_productid on repository_item(repository_id, product_id);
 ```
@@ -453,7 +455,7 @@ create table supplier (
     id int unsigned auto_increment primary key,
     supplier_name varchar(50) not null,
     gmt_create datetime not null default current_timestamp,
-    gmt_modified datetime not null default current_timestamp on update current_timestamp,
+    gmt_modified datetime not null default current_timestamp on update current_timestamp
 );
 create unique index uk_suppliername on supplier(supplier_name);
 ```
@@ -502,6 +504,7 @@ create table supplier_record(
     unit_price_supply decimal(15, 2) unsigned not null,
     unit_price_return decimal(15, 2) unsigned not null,
     product_id int unsigned not null,
+    product_name varchar(100) not null,
     gmt_create datetime not null default current_timestamp,
     gmt_modified datetime not null default current_timestamp on update current_timestamp
 );
@@ -572,16 +575,18 @@ create table purchase_order(
     total_price decimal(15 , 2) not null,
     -- 实际付款金额
     payment_amount decimal(15, 2) not null default 0.00,
-    -- 已支付
-    is_paid tinyint not null default 0,
     -- 支付方式 在线支付 支付宝、微信、货到付款
     payment_type tinyint unsigned not null,
+    -- 已支付
+    is_paid tinyint not null default 0,
     -- 支付时间
-    payment_time datetime default null,
+    paid_time datetime default null,
     -- 操作人id
     user_id int unsigned not null,
     -- 订单状态。
     order_status tinyint unsigned not null default 1,
+    -- 完成时间
+    finished_time datetime,
     remark varchar(1000) not null default '',
     gmt_create datetime not null default current_timestamp,
     gmt_modified datetime not null default current_timestamp on update current_timestamp
@@ -592,6 +597,7 @@ drop table if exists purchase_order_item;
 create table purchase_order_item(
     id int unsigned auto_increment primary key,
     product_id int unsigned not null,
+    -- 该名称不是冗余的，不能被更新
     product_name varchar(100) not null,
     unit_price decimal(15, 2) not null,
     quantity int unsigned not null,
@@ -599,55 +605,53 @@ create table purchase_order_item(
     total_price decimal(15, 2) not null,
     gmt_create datetime not null default current_timestamp,
     gmt_modified datetime not null default current_timestamp on update current_timestamp
-)
-```
-
-### 进货退货订单
-
-状态：未支付，已支付，已出库，已完成，已取消
-
-退货单价应该从supplier record中获取
-
-```sql
-create table purchase_return_order(
-    id int unsigned auto_increment primary key,
-    order_no bigint unsigned not null,
-    -- 订单计算总价
-    total_price decimal(15 , 2) not null,
-    -- 实际付款金额
-    payment_amount decimal(15, 2) not null,
-    -- 支付时间
-    payment_time datetime default null,
-    -- 操作人id
-    user_id int unsigned not null,
-    -- 存入的仓库
-    repository_id int unsigned not null,
-    -- 订单状态。未支付，已支付，已发货，交易完成，已取消，已退货
-    order_status tinyint unsigned not null default 1,
-    -- 订单完成时间。即订单状态不可变化时
-    finish_time datetime default null,
-    remark varchar(1000) not null default '',
-    gmt_create datetime not null default current_timestamp,
-    gmt_modified datetime not null default current_timestamp on update current_timestamp
-)；
-
-create table purchase_return_order_item(
-    id int unsigned auto_increment primary key,
-    product_id int unsigned not null,
-    product_name varchar(100) not null,
-    -- 退货单价
-    unit_price decimal(15, 2) not null,
-    quantity int unsigned not null,
-    -- 表示 小计价格
-    total_price decimal(15, 2) not null,
-    gmt_create datetime not null default current_timestamp,
-    gmt_modified datetime not null default current_timestamp on update current_timestamp
-)
+);
 ```
 
 ### 转库
 
 转库功能使用库存记录表实现，只需要使用一个额外的订单号
+
+用户创建转库订单后，发送审查，通过则执行
+
+状态：审查、出库、入库、完成
+
+```sql
+drop table if exists transfer_order;
+create table transfer_order(
+    id int unsigned auto_increment primary key,
+    order_no bigint unsigned not null,
+    -- 操作人id
+    user_id int unsigned not null,
+    -- 订单状态。
+    order_status tinyint unsigned not null default 1,
+    -- 完成时间
+    finished_time datetime,
+    remark varchar(1000) not null default '',
+    gmt_create datetime not null default current_timestamp,
+    gmt_modified datetime not null default current_timestamp on update current_timestamp
+);
+create unique index uk_orderno on purchase_order(order_no);
+
+drop table if exists transfer_order_item;
+create table transfer_order_item(
+    id int unsigned auto_increment primary key,
+    product_id int unsigned not null,
+    product_name varchar(100) not null,
+    from_repository_id int unsigned not null,
+    to_repository_id int unsigned not null,
+    quantity int unsigned not null,
+    -- 表示 小计价格
+    gmt_create datetime not null default current_timestamp,
+    gmt_modified datetime not null default current_timestamp on update current_timestamp
+);
+```
+
+### 上架
+
+依据库存记录，仅需要使用上架订单编号即可
+
+### 下架
 
 ### 库存记录
 
@@ -668,8 +672,8 @@ create table inventory_record(
     is_outbound tinyint unsigned not null,
     -- 订单，该订单表示各种类型，货架、进货，退货
     order_no bigint unsigned not null,
-    order_type tinyint unsigned not null,
-    user_id int unsigned not null,
+    -- 订单是否全部完成
+    is_completed tinyint unsigned not null,
     gmt_create datetime not null default current_timestamp,
     gmt_modified datetime not null default current_timestamp on update current_timestamp
 );

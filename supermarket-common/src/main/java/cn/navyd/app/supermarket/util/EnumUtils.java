@@ -1,9 +1,8 @@
 package cn.navyd.app.supermarket.util;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkNotNull; 
 import java.util.HashSet;
 import java.util.Set;
-import javax.sound.midi.Sequencer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -32,7 +31,7 @@ public class EnumUtils {
   }
 
   /**
-   * 如果指定的enum class存在重复的序列值则返回true。该方法要求class实现{@link Sequencer}接口
+   * 如果指定的enum class存在重复的序列值则返回true。该方法要求class实现{@link EnumSequencer}接口
    * @param enumSequencerClass
    * @return
    */
