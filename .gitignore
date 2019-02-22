@@ -43,7 +43,3 @@ buildNumber.properties
 # vscode
 .vscode
 .factorypath
-
-# 项目文件自带git
-supermarket-common/
-supermarket-restful-web/
