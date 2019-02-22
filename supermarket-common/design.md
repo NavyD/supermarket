@@ -592,25 +592,26 @@ create table purchase_order(
     gmt_modified datetime not null default current_timestamp on update current_timestamp
 );
 create unique index uk_orderno on purchase_order(order_no);
+create index idx_userid on purchase_order(user_id);
 
 drop table if exists purchase_order_item;
 create table purchase_order_item(
     id int unsigned auto_increment primary key,
+    purchase_order_id int unsigned not null,
     product_id int unsigned not null,
     -- 该名称不是冗余的，不能被更新
     product_name varchar(100) not null,
-    unit_price decimal(15, 2) not null,
     quantity int unsigned not null,
+    unit_price decimal(15, 2) not null,
     -- 表示 小计价格
     total_price decimal(15, 2) not null,
     gmt_create datetime not null default current_timestamp,
     gmt_modified datetime not null default current_timestamp on update current_timestamp
 );
+create unique index uk_purchaseorderid_productid on purchase_order_item(purchase_order_id, product_id);
 ```
 
 ### 转库
-
-转库功能使用库存记录表实现，只需要使用一个额外的订单号
 
 用户创建转库订单后，发送审查，通过则执行
 
@@ -632,26 +633,96 @@ create table transfer_order(
     gmt_modified datetime not null default current_timestamp on update current_timestamp
 );
 create unique index uk_orderno on purchase_order(order_no);
+create index idx_userid on transfer_order(user_id);
 
 drop table if exists transfer_order_item;
 create table transfer_order_item(
     id int unsigned auto_increment primary key,
+    transfer_order_id int unsigned not null,
     product_id int unsigned not null,
     product_name varchar(100) not null,
+    quantity int unsigned not null,
     from_repository_id int unsigned not null,
     to_repository_id int unsigned not null,
-    quantity int unsigned not null,
-    -- 表示 小计价格
     gmt_create datetime not null default current_timestamp,
     gmt_modified datetime not null default current_timestamp on update current_timestamp
 );
+create unique index uk_transferorderid_productid on transfer_order_item(transfer_order_id, product_id);
 ```
 
 ### 上架
 
-依据库存记录，仅需要使用上架订单编号即可
+商品上架订单。
+
+状态：审查、出库、上架、完成
+
+```sql
+drop table if exists shelve_order;
+create table shelve_order(
+    id int unsigned auto_increment primary key,
+    order_no bigint unsigned not null,
+    -- 操作人id
+    user_id int unsigned not null,
+    -- 订单状态。
+    order_status tinyint unsigned not null default 1,
+    -- 完成时间
+    finished_time datetime,
+    remark varchar(1000) not null default '',
+    gmt_create datetime not null default current_timestamp,
+    gmt_modified datetime not null default current_timestamp on update current_timestamp
+);
+create unique index uk_orderno on shelve_order(order_no);
+create index idx_userid on shelve_order(user_id);
+
+drop table if exists shelve_order_item;
+create table shelve_order_item(
+    id int unsigned auto_increment primary key,
+    shelve_order_id int unsigned not null,
+    product_id int unsigned not null,
+    product_name varchar(100) not null,
+    quantity int unsigned not null,
+    repository_id int unsigned not null,
+    gmt_create datetime not null default current_timestamp,
+    gmt_modified datetime not null default current_timestamp on update current_timestamp
+);
+create unique index uk_shelveorderid_productid on shelve_order_item(shelve_order_id, product_id);
+```
 
 ### 下架
+
+状态：审查、下架、入库、完成
+
+```sql
+drop table if exists unshelve_order;
+create table unshelve_order(
+    id int unsigned auto_increment primary key,
+    order_no bigint unsigned not null,
+    -- 操作人id
+    user_id int unsigned not null,
+    -- 订单状态。
+    order_status tinyint unsigned not null default 1,
+    -- 完成时间
+    finished_time datetime,
+    remark varchar(1000) not null default '',
+    gmt_create datetime not null default current_timestamp,
+    gmt_modified datetime not null default current_timestamp on update current_timestamp
+);
+create unique index uk_orderno on unshelve_order(order_no);
+create index idx_userid on unshelve_order(user_id);
+
+drop table if exists unshelve_order_item;
+create table unshelve_order_item(
+    id int unsigned auto_increment primary key,
+    unshelve_order_id int unsigned not null,
+    product_id int unsigned not null,
+    product_name varchar(100) not null,
+    repository_id int unsigned not null,
+    quantity int unsigned not null,
+    gmt_create datetime not null default current_timestamp,
+    gmt_modified datetime not null default current_timestamp on update current_timestamp
+);
+create unique index uk_unshelveorderid_productid on unshelve_order_item(unshelve_order_id, product_id);
+```
 
 ### 库存记录
 
@@ -677,18 +748,25 @@ create table inventory_record(
     gmt_create datetime not null default current_timestamp,
     gmt_modified datetime not null default current_timestamp on update current_timestamp
 );
+/**
+由于转库订单同时存在出库、入库操作，其他订单仅存在单一操作
+*/
+create unique index uk_orderno_isoutbound on inventory_record(order_no, is_outbound);
 
 create table inventory_record_item(
     id int unsigned auto_increment primary key,
+    inventory_record_id int unsigned not null,
     -- 出库或入库
     repository_id int unsigned not null,
     -- 商品
     product_id int unsigned not null,
+    product_name varchar(100) not null,
     quantity int unsigned not null,
-    inventory_record_id int unsigned not null,
     gmt_create datetime not null default current_timestamp,
     gmt_modified datetime not null default current_timestamp on update current_timestamp
-)
+);
+create unique index uk_inventoryrecordid_productid on inventory_record_item(inventory_record_id, product_id);
+
 ```
 
 ## 订单核查表
@@ -703,7 +781,7 @@ create table order_review_record(
     user_id int unsigned not null,
     gmt_create datetime not null default current_timestamp,
     gmt_modified datetime not null default current_timestamp on update current_timestamp
-)
+);
 ```
 
 ## 问题
