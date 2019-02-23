@@ -1,7 +1,8 @@
-package cn.navyd.app.supermarket.base.dao;
+package cn.navyd.app.supermarket.base;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
+import cn.navyd.app.supermarket.base.AbstractSqlProvider;
 
 public class AbstractSqlProviderTest {
 

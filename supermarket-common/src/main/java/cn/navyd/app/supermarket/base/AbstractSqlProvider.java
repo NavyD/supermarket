@@ -1,7 +1,6 @@
-package cn.navyd.app.supermarket.base.dao;
+package cn.navyd.app.supermarket.base;
 
 import org.apache.ibatis.jdbc.SQL;
-import cn.navyd.app.supermarket.base.BaseDO;
 
 /**
  * 实现了一些通用的sql代码。 不能子类不允许覆盖BaseSqlProvider的实现方法，否则mybatis会抛出异常
@@ -33,7 +32,7 @@ public abstract class AbstractSqlProvider<T extends BaseDO> {
    * @param columns
    * @return
    */
-  static String getColumnsString(String[] columns) {
+  protected static String getColumnsString(String[] columns) {
     StringBuilder sb = new StringBuilder();
     for (String cols : columns) {
         sb.append(cols);
@@ -41,7 +40,7 @@ public abstract class AbstractSqlProvider<T extends BaseDO> {
     return sb.toString();
   }
 
-  static String renameColumns(String table, String columns) {
+  protected static String renameColumns(String table, String columns) {
     StringBuilder sb = new StringBuilder();
     String delimiter = COLUMN_DELITER;
     String[] names = columns.split(delimiter);

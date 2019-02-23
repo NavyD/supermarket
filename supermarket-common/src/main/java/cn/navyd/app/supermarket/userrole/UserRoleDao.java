@@ -11,7 +11,6 @@ import org.apache.ibatis.annotations.SelectProvider;
 import org.apache.ibatis.annotations.UpdateProvider;
 import org.apache.ibatis.type.JdbcType;
 import cn.navyd.app.supermarket.base.BaseDao;
-import cn.navyd.app.supermarket.base.dao.UserRoleSqlProvider;
 
 @CacheNamespace(readWrite=false)
 @Mapper

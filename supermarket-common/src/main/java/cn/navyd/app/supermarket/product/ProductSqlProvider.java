@@ -1,8 +1,7 @@
-package cn.navyd.app.supermarket.base.dao;
+package cn.navyd.app.supermarket.product;
 
 import org.apache.ibatis.jdbc.SQL;
-import cn.navyd.app.supermarket.product.ProductDO;
-//import static java;
+import cn.navyd.app.supermarket.base.AbstractSqlProvider;
 
 public class ProductSqlProvider extends AbstractSqlProvider<ProductDO> {
   private static final String[] COLUMNS = {"id, product_name, production_date, shelf_life, product_unit, specification, ",

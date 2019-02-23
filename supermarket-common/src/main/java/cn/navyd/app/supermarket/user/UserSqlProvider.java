@@ -1,7 +1,7 @@
-package cn.navyd.app.supermarket.base.dao;
+package cn.navyd.app.supermarket.user;
 
 import org.apache.ibatis.jdbc.SQL;
-import cn.navyd.app.supermarket.user.UserDO;
+import cn.navyd.app.supermarket.base.AbstractSqlProvider;
 
 public final class UserSqlProvider extends AbstractSqlProvider<UserDO> {
   private static final String[] COLUMNS = {"id, username, hash_password, email, is_enabled, phone_number, failed_count, ",

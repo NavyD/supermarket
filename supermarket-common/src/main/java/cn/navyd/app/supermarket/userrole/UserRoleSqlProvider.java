@@ -1,7 +1,7 @@
-package cn.navyd.app.supermarket.base.dao;
+package cn.navyd.app.supermarket.userrole;
 
 import org.apache.ibatis.jdbc.SQL;
-import cn.navyd.app.supermarket.userrole.UserRoleDO;
+import cn.navyd.app.supermarket.base.AbstractSqlProvider;
 
 public class UserRoleSqlProvider extends AbstractSqlProvider<UserRoleDO> {
   private static final String BASE_COLUMNS = "id, user_id, role_id, gmt_create, gmt_modified";
