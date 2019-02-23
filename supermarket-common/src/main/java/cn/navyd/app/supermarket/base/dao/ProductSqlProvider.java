@@ -66,14 +66,6 @@ public class ProductSqlProvider extends AbstractSqlProvider<ProductDO> {
         sql.VALUES("supplier_name", "#{supplierName,jdbcType=VARCHAR}");
     }
     
-    if (bean.getGmtCreate() != null) {
-        sql.VALUES("gmt_create", "#{gmtCreate,jdbcType=TIMESTAMP}");
-    }
-    
-    if (bean.getGmtModified() != null) {
-        sql.VALUES("gmt_modified", "#{gmtModified,jdbcType=TIMESTAMP}");
-    }
-    
     return sql.toString();
   }
   
@@ -119,14 +111,6 @@ public class ProductSqlProvider extends AbstractSqlProvider<ProductDO> {
     
     if (bean.getSupplierName() != null) {
         sql.SET("supplier_name = #{supplierName,jdbcType=VARCHAR}");
-    }
-    
-    if (bean.getGmtCreate() != null) {
-        sql.SET("gmt_create = #{gmtCreate,jdbcType=TIMESTAMP}");
-    }
-    
-    if (bean.getGmtModified() != null) {
-        sql.SET("gmt_modified = #{gmtModified,jdbcType=TIMESTAMP}");
     }
     
     sql.WHERE("id = #{id,jdbcType=INTEGER}");

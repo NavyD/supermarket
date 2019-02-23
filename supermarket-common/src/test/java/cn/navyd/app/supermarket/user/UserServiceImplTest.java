@@ -137,7 +137,6 @@ public class UserServiceImplTest extends BaseServiceTest {
     user.setEmail(email);
     user.setEnabled(true);
     user.setHashPassword(PASSWORD_ENCODER.encode(password));
-    user.setIconPath(icon);
     user.setPhoneNumber(phoneNumber);
     user.setUsername(username);
     user.setFailedCount(0);
@@ -161,7 +160,6 @@ public class UserServiceImplTest extends BaseServiceTest {
     user.setEmail(email);
     user.setEnabled(true);
     user.setHashPassword(PASSWORD_ENCODER.encode(password));
-    user.setIconPath(icon);
     user.setPhoneNumber(phoneNumber);
     user.setUsername(username);
     user.setFailedCount(0);
@@ -181,7 +179,6 @@ public class UserServiceImplTest extends BaseServiceTest {
     user.setEmail(email);
     user.setEnabled(true);
     user.setHashPassword(PASSWORD_ENCODER.encode(password));
-    user.setIconPath(icon);
     user.setPhoneNumber(phoneNumber);
     user.setUsername(username);
     user.setFailedCount(0);
@@ -459,7 +456,6 @@ public class UserServiceImplTest extends BaseServiceTest {
     updateUser.setEmail(getTestData("aa@email.com"));
     updateUser.setEnabled(true);
     updateUser.setHashPassword(PASSWORD_ENCODER.encode(password));
-    updateUser.setIconPath(getTestData("/test/1"));
     updateUser.setPhoneNumber(getTestData("00010"));
     updateUser.setUsername(getTestData("user"));
     updateUser.setFailedCount(0);

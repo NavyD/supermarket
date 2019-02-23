@@ -10,15 +10,14 @@ import org.apache.ibatis.annotations.ResultMap;
 import org.apache.ibatis.annotations.Results;
 import org.apache.ibatis.annotations.SelectProvider;
 import org.apache.ibatis.annotations.UpdateProvider;
+import org.apache.ibatis.type.JdbcType;
 import cn.navyd.app.supermarket.base.BaseDao;
 import cn.navyd.app.supermarket.base.dao.RoleSqlProvider;
 
 @CacheNamespace(readWrite=false)
 @Mapper
 public interface RoleDao extends BaseDao<RoleDO> {
-  public static final String RESULT_MAP_ID = "roleResultMap";
-  
-  // ReadOnlyDao方法
+  static final String RESULT_MAP_ID = "roleResultMap";
   
   @SelectProvider(type=RoleSqlProvider.class, method="countTotalRows")
   int countTotalRows();
@@ -27,14 +26,18 @@ public interface RoleDao extends BaseDao<RoleDO> {
   int countRowsByLastId(Integer lastId);
   
   @SelectProvider(type=RoleSqlProvider.class, method="getByPrimaryKey") 
-  @Results(id=RESULT_MAP_ID, value= {
-      @Result(column = "is_enabled", property = "enabled"),
-      @Result(column="role_name", property="name")})
+  @Results(id=RESULT_MAP_ID, value={
+      @Result(column="id", property="id", jdbcType=JdbcType.INTEGER, id=true),
+      @Result(column="role_name", property="name", jdbcType=JdbcType.VARCHAR),
+      @Result(column="is_enabled", property="enabled", jdbcType=JdbcType.TINYINT),
+      @Result(column="gmt_create", property="gmtCreate", jdbcType=JdbcType.TIMESTAMP),
+      @Result(column="gmt_modified", property="gmtModified", jdbcType=JdbcType.TIMESTAMP)
+  })
   RoleDO getByPrimaryKey(Integer id);
   
   @SelectProvider(type=RoleSqlProvider.class, method="listPage") 
   @ResultMap(RESULT_MAP_ID)
-  Collection<RoleDO> listPage(Integer pageNum, Integer pageSize, Integer lastId);
+  Collection<RoleDO> listPage(Integer pageNumber, Integer pageSize, Integer lastId);
   
   // baseDao方法
   
@@ -46,8 +49,6 @@ public interface RoleDao extends BaseDao<RoleDO> {
   
   @DeleteProvider(type=RoleSqlProvider.class, method="removeByPrimaryKey")
   void removeByPrimaryKey(Integer id);
-  
-  // roleDao方法
   
   /**
    * 使用name获取唯一的role

@@ -15,6 +15,12 @@ import cn.navyd.app.supermarket.config.MyBatisConfig;
 import cn.navyd.app.supermarket.config.SupermarketProfiles;
 import cn.navyd.app.supermarket.util.PageUtils;
 
+/**
+ * 测试BaseDao的方法，具体测试子类dao应该实现该类。
+ * @author navyd
+ *
+ * @param <T>
+ */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes= {DaoConfig.class, DatasourceConfig.class, MyBatisConfig.class})
 @ActiveProfiles(profiles = SupermarketProfiles.DEVELOPMENT)
@@ -48,6 +54,21 @@ public abstract class BaseDaoTest<T extends BaseDO> extends BaseTest {
     
     invalidId = Integer.MAX_VALUE;
     assertThat(dao.getByPrimaryKey(invalidId)).isNull();
+  }
+  
+  @Transactional
+  @Test
+  public void getByPrimaryKeyCacheTest() {
+    var dao = getBaseDao();
+    int id = getFirstId();
+    var bean = dao.getByPrimaryKey(id);
+    assertThat(bean).isNotNull().hasNoNullFieldsOrProperties();
+    // 修改 字段 将会导致 局部缓存被修改
+    var change = bean.getGmtCreate().minusDays(10);
+    bean.setGmtCreate(change);
+    // 缓存被修改
+    assertThat(dao.getByPrimaryKey(id))
+      .matches(b -> b.getGmtCreate().isEqual(change) && b == bean);
   }
   
   @Test
@@ -142,19 +163,11 @@ public abstract class BaseDaoTest<T extends BaseDO> extends BaseTest {
   }
   
   /**
-   * 获取baseDao对象
+   * 获取lastId测试countRowsByLastId，默认返回getTotalRows() - 1
    * @return
    */
-  protected BaseDao<T> getBaseDao() {
-    return null;
-  }
-  
-  /**
-   * 返回第一个测试数据，不包含{@link BaseDO}字段。应该可以通过equals()判断
-   * @return
-   */
-  protected T getFirst() {
-    return null;
+  protected int getLastId() {
+    return getTotalRows() - 1;
   }
   
   /**
@@ -166,26 +179,26 @@ public abstract class BaseDaoTest<T extends BaseDO> extends BaseTest {
   }
   
   /**
+   * 获取baseDao对象
+   * @return
+   */
+  protected abstract BaseDao<T> getBaseDao();
+  
+  /**
+   * 返回第一个测试数据，不包含{@link BaseDO}字段。应该可以通过equals()判断
+   * @return
+   */
+  protected abstract T getFirst();
+  
+  /**
    * 获取最大行数
    * @return
    */
-  protected int getTotalRows() {
-    return 0;
-  }
-  
-  /**
-   * 获取lastId测试countRowsByLastId，默认返回getTotalRows() - 1
-   * @return
-   */
-  protected int getLastId() {
-    return getTotalRows() - 1;
-  }
+  protected abstract int getTotalRows();
   
   /**
    * 返回可保存的对象。要求对象仅{@link BaseDO}字段为null
    * @return
    */
-  protected T getSavable() {
-    return null;
-  }
+  protected abstract T getSavable();
 }

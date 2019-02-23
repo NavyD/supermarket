@@ -7,10 +7,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import cn.navyd.app.supermarket.BaseDaoTest;
+import cn.navyd.app.supermarket.BaseServiceTest;
 import cn.navyd.app.supermarket.base.ReadOnlyDao;
 import cn.navyd.app.supermarket.user.UserDO;
 
-public class RoleServiceImplTest extends BaseDaoTest {
+public class RoleServiceImplTest extends BaseServiceTest {
   @Autowired
   private ReadOnlyDao<UserDO> userDao;
   @Autowired

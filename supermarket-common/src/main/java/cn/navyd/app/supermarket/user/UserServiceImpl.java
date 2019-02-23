@@ -96,7 +96,6 @@ public class UserServiceImpl extends AbstractBaseService<UserDO> implements User
     newUser.setUsername(username);
     newUser.setEmail(email);
     newUser.setPhoneNumber(registerUser.getPhoneNumber());
-    newUser.setIconPath(registerUser.getIconPath());
     newUser.setEnabled(true);
     return save(newUser);
   }

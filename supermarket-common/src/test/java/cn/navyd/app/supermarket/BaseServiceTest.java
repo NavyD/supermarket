@@ -11,5 +11,5 @@ import cn.navyd.app.supermarket.config.ServiceConfig;
 
 @EnableConfigurationProperties
 @SpringBootTest(classes= {DaoConfig.class, DatasourceConfig.class, MyBatisConfig.class, ServiceConfig.class, SecurityConfig.class, EmailProperties.class})
-public class BaseServiceTest extends BaseDaoTest {
+public class BaseServiceTest extends BaseTest {
 }

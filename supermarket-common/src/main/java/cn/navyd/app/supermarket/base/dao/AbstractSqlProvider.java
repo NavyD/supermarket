@@ -26,7 +26,6 @@ import cn.navyd.app.supermarket.base.BaseDO;
 public abstract class AbstractSqlProvider<T extends BaseDO> {
   @Deprecated
   protected static final String BASE_COLUMNS = "id, gmt_create, gmt_modified";
-  @Deprecated
   protected static final String COLUMN_DELITER = ",";
   
   /**
@@ -98,20 +97,18 @@ public abstract class AbstractSqlProvider<T extends BaseDO> {
       }
     }.toString();
   }
+  
+  // 不能覆盖
+  // public abstract String save(T bean);
+  //
+  // public abstract String updateByPrimaryKey(T bean);
 
   /**
    * 获取数据表的列名用','分隔的字符串。该方法返回的列将与DO对象属性相对应
    * 
    * @return
    */
-  protected String getBaseColumns() {
-    return BASE_COLUMNS + ", " + getExtraColumns();
-  }
-
-  // 不能覆盖
-  // public abstract String save(T bean);
-  //
-  // public abstract String updateByPrimaryKey(T bean);
+  protected abstract String getBaseColumns();
 
   protected abstract String getTableName();
 
@@ -121,6 +118,7 @@ public abstract class AbstractSqlProvider<T extends BaseDO> {
    * @see #getBaseColumns()
    * @return
    */
+  @Deprecated
   protected String getExtraColumns() {
     return "";
   }

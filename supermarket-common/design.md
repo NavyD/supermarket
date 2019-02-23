@@ -63,7 +63,6 @@ create table user_info (
     username varchar(20) not null,
     -- 使用spring security DelegatingPasswordEncoder格式{id}+bcrypt
     hash_password char(70) not null,
-    icon_path varchar(255) ,
     email varchar(100) not null,
     -- 尝试登录失败次数
     failed_count tinyint unsigned not null default 0,

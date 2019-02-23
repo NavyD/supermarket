@@ -4,43 +4,43 @@ import org.apache.ibatis.jdbc.SQL;
 import cn.navyd.app.supermarket.role.RoleDO;
 
 public class RoleSqlProvider extends AbstractSqlProvider<RoleDO> {
-  private static final String EXTRA_COLUMNS = "role_name, is_enabled";
+  private static final String BASE_COLUMNS = "id, role_name, is_enabled, gmt_create, gmt_modified";
   
   @Override
   protected String getTableName() {
     return "role_info";
   }
-
-  @Override
-  protected String getExtraColumns() {
-    return EXTRA_COLUMNS;
-  }
   
   public String save(RoleDO bean) {
-    return new SQL() {
-      {
-        INSERT_INTO(getTableName())
-        .VALUES("role_name", "#{name}");
-        
-        if (bean.getEnabled() != null)
-          VALUES("is_enabled", "#{enabled}");
-      }
-    }.toString();
+    SQL sql = new SQL();
+    sql.INSERT_INTO(getTableName());
+    
+    if (bean.getName() != null) {
+        sql.VALUES("role_name", "#{name,jdbcType=VARCHAR}");
+    }
+    
+    if (bean.getEnabled() != null) {
+        sql.VALUES("is_enabled", "#{enabled,jdbcType=TINYINT}");
+    }
+    
+    return sql.toString();
   }
   
   public String updateByPrimaryKey(RoleDO bean) {
-    return new SQL() {
-      {
-        UPDATE(getTableName());
-        
-        if (bean.getName() != null)
-          SET("role_name = #{name}");
-        
-        if (bean.getEnabled() != null)
-          SET("is_enabled = #{enabled}");
-        WHERE("id = #{id}");
-      }
-    }.toString();
+    SQL sql = new SQL();
+    sql.UPDATE(getTableName());
+    
+    if (bean.getName() != null) {
+        sql.SET("role_name = #{name,jdbcType=VARCHAR}");
+    }
+    
+    if (bean.getEnabled() != null) {
+        sql.SET("is_enabled = #{enabled,jdbcType=TINYINT}");
+    }
+    
+    sql.WHERE("id = #{id,jdbcType=INTEGER}");
+    
+    return sql.toString();
   }
   
   // roleDao方法
@@ -65,33 +65,9 @@ public class RoleSqlProvider extends AbstractSqlProvider<RoleDO> {
       }
     }.toString();
   }
-  
-  // cte 表达式查询
-//  public String listByPrimaryKey(Integer id) {
-//    String sql = "WITH RECURSIVE cte (" + getBaseColumns() + ") AS (\n";
-//    sql += new SQL() {
-//      {
-//        SELECT(getBaseColumns())
-//        .FROM(getTableName())
-//        .WHERE("id = #{id}");
-//      }
-//    }.toString();
-//    sql += "\nUNION ALL\n";
-//    sql += new SQL() {
-//      {
-//        String tableName = "p";
-//        SELECT(renameColumns(tableName, getBaseColumns()))
-//        .FROM(getTableName() + " " + tableName)
-//        .INNER_JOIN("cte ON p.parent_id = cte.id");
-//      }
-//    }.toString();
-//    sql += "\n)\n";
-//    sql += new SQL() {
-//      {
-//        SELECT(getBaseColumns())
-//        .FROM("cte");
-//      }
-//    }.toString();
-//    return sql;
-//  }
+
+  @Override
+  protected String getBaseColumns() {
+    return BASE_COLUMNS;
+  }
 }

@@ -15,7 +15,6 @@ public class UserDO extends BaseDO {
     private static final long serialVersionUID = -4338333825735075853L;
     private String username;
     private String hashPassword;
-    private String iconPath;
     private String email;
     private Boolean enabled;
     private String phoneNumber;

@@ -42,8 +42,7 @@
 			mapperName="ProductDao"
 			sqlProviderName="ProductSqlProvider"
 			enableSelectByExample="false"
-			enableUpdateByExample="false"
-			>
+			enableUpdateByExample="false">
 			<property name="useActualColumnNames" value="false" />
 			<generatedKey column="id" sqlStatement="mysql"
 				identity="true" />
@@ -56,6 +55,48 @@
 			<columnOverride 
 				column="specification_unit"
 				javaType="${basicPackage}.product.SpecificationUnitEnum"/>
+		</table>
+		
+		<table tableName="user_info"
+			domainObjectName="UserDO"
+			mapperName="UserDao"
+			sqlProviderName="UserSqlProvider"
+			enableSelectByExample="false"
+			enableUpdateByExample="false">
+			<columnOverride 
+				column="is_enabled" 
+				property="enabled" 
+				javaType="Boolean"/>
+			<columnOverride 
+				column="failed_count" 
+				javaType="Integer"/>
+		</table>
+		
+		<table tableName="role_info"
+			domainObjectName="RoleDO"
+			mapperName="RoleDao"
+			sqlProviderName="RoleSqlProvider"
+			enableSelectByExample="false"
+			enableUpdateByExample="false">
+			<columnOverride 
+				column="is_enabled" 
+				property="enabled" 
+				javaType="Boolean"/>
+			<columnOverride 
+				column="role_name" 
+				property="name"/>
+		</table>
+		
+		<table tableName="user_role"
+			domainObjectName="UserRoleDO"
+			mapperName="UserRoleDao"
+			sqlProviderName="UserRoleSqlProvider"
+			enableSelectByExample="false"
+			enableUpdateByExample="false">
+			<!-- 不能忽略id，否则不会提供updateByPrimaryKeySelective通过主键查询的方法 -->
+			<!-- <ignoreColumn column="id"/> -->
+			<!-- 应该忽略gmt*, id三个字段，但是忽略后导致Results、select都缺少该字段 -->
+			<!-- <ignoreColumnsByRegex pattern="gmt.*"/> -->
 		</table>
 
 	</context>

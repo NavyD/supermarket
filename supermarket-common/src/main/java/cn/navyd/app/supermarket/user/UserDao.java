@@ -10,12 +10,14 @@ import org.apache.ibatis.annotations.ResultMap;
 import org.apache.ibatis.annotations.Results;
 import org.apache.ibatis.annotations.SelectProvider;
 import org.apache.ibatis.annotations.UpdateProvider;
+import org.apache.ibatis.type.JdbcType;
 import cn.navyd.app.supermarket.base.BaseDao;
 import cn.navyd.app.supermarket.base.dao.UserSqlProvider;
 
 @CacheNamespace(readWrite=false)
 @Mapper
 public interface UserDao extends BaseDao<UserDO> {
+  static final String RESULT_MAP_ID = "userResultMap";
   // ReadOnlyDao方法
   
   @SelectProvider(type=UserSqlProvider.class, method="countTotalRows")
@@ -25,14 +27,22 @@ public interface UserDao extends BaseDao<UserDO> {
   int countRowsByLastId(Integer lastId);
   
   @SelectProvider(type=UserSqlProvider.class, method="getByPrimaryKey") 
-  @Results(id=UserSqlProvider.RESULT_MAP_ID, value=@Result(column = "is_enabled", property = "enabled"))
+  @Results(id=RESULT_MAP_ID, value={
+      @Result(column="id", property="id", jdbcType=JdbcType.INTEGER, id=true),
+      @Result(column="username", property="username", jdbcType=JdbcType.VARCHAR),
+      @Result(column="hash_password", property="hashPassword", jdbcType=JdbcType.CHAR),
+      @Result(column="email", property="email", jdbcType=JdbcType.VARCHAR),
+      @Result(column="is_enabled", property="enabled", jdbcType=JdbcType.TINYINT),
+      @Result(column="phone_number", property="phoneNumber", jdbcType=JdbcType.CHAR),
+      @Result(column="failed_count", property="failedCount", jdbcType=JdbcType.TINYINT),
+      @Result(column="gmt_create", property="gmtCreate", jdbcType=JdbcType.TIMESTAMP),
+      @Result(column="gmt_modified", property="gmtModified", jdbcType=JdbcType.TIMESTAMP)
+  })
   UserDO getByPrimaryKey(Integer id);
   
   @SelectProvider(type=UserSqlProvider.class, method="listPage") 
-  @ResultMap(UserSqlProvider.RESULT_MAP_ID)
-  Collection<UserDO> listPage(Integer pageNum, Integer pageSize, Integer lastId);
-  
-  // baseDao方法
+  @ResultMap(RESULT_MAP_ID)
+  Collection<UserDO> listPage(Integer pageNumber, Integer pageSize, Integer lastId);
   
   @InsertProvider(type=UserSqlProvider.class, method="save")
   void save(UserDO bean);
@@ -51,7 +61,7 @@ public interface UserDao extends BaseDao<UserDO> {
    * @return
    */
   @SelectProvider(type=UserSqlProvider.class, method="getByUsername") 
-  @ResultMap(UserSqlProvider.RESULT_MAP_ID)
+  @ResultMap(RESULT_MAP_ID)
   UserDO getByUsername(String username);
 
   /**
@@ -61,6 +71,6 @@ public interface UserDao extends BaseDao<UserDO> {
    * @return
    */
   @SelectProvider(type=UserSqlProvider.class, method="getByEmail") 
-  @ResultMap(UserSqlProvider.RESULT_MAP_ID)
+  @ResultMap(RESULT_MAP_ID)
   UserDO getByEmail(String email);
 }
