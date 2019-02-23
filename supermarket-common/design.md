@@ -176,7 +176,7 @@ create table product_category(
 );
 create unique index uk_categoryname on product_category(category_name);
 
-insert into product_category(id, category_name, parent_id) values (1,'食品',0),(2,'非食品',0),(3,'生鲜',0),(4,'饼干',1),(5,'甜饼',4),(6,'饮品',1),(7,'水',6),(8,'矿泉水',7),(9,'纯净水',7),(10,'茶饮料',6),(11,'红茶',10),(12,'曲奇',5),(13,'威化',5),(14,'酒',1),(15,'啤酒',14),(16,'休闲小吃',1)
+insert into product_category(id, category_name, parent_id) values (1,'食品',0),(2,'非食品',0),(3,'生鲜',0),(4,'饼干',1),(5,'甜饼',4),(6,'饮品',1),(7,'水',6),(8,'矿泉水',7),(9,'纯净水',7),(10,'茶饮料',6),(11,'红茶',10),(12,'曲奇',5),(13,'威化',5),(14,'酒',1),(15,'啤酒',14),(16,'休闲小吃',1);
 ```
 
 ### 基于ClosureTable的无限级分类存储

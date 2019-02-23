@@ -98,6 +98,13 @@
 			<!-- 应该忽略gmt*, id三个字段，但是忽略后导致Results、select都缺少该字段 -->
 			<!-- <ignoreColumnsByRegex pattern="gmt.*"/> -->
 		</table>
-
+		
+		<table tableName="product_category"
+			domainObjectName="ProductCategoryDO"
+			mapperName="ProductCategoryDao"
+			sqlProviderName="ProductCategorySqlProvider"
+			enableSelectByExample="false"
+			enableUpdateByExample="false">
+		</table>
 	</context>
 </generatorConfiguration>

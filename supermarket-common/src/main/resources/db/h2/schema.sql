@@ -61,3 +61,12 @@ create unique index uk_productname on product(product_name);
 create index idx_supplierid on product(supplier_id);
 create index idx_productcategoryid on product(product_category_id);
 
+drop table if exists product_category;
+create table product_category(
+    id int unsigned auto_increment primary key,
+    category_name varchar(20) not null,
+    parent_id int unsigned not null default 0,
+    gmt_create datetime not null default current_timestamp,
+    gmt_modified datetime not null default current_timestamp on update current_timestamp
+);
+create unique index uk_categoryname on product_category(category_name);
