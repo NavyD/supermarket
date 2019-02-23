@@ -24,4 +24,15 @@ public class Regexs {
    * </pre>
    */
   public static final String INTERFACE_EMPTY_DEFAULT_METHOD = "default ((.|\\s)+?\\))\\s*\\{(\\s|.)*?\\}";
+  
+  /**
+   * 匹配Mybatis Generator自动生成的SqlProvider类中的updateByExampleSelective(Map<String, Object>
+   * parameter)中的字符串：#{record.id,jdbcType=INTEGER}
+   * <pre>
+   * (#\{)\w+(\.)
+   * 
+   * 使用方法：'$1'替换#{record.id,jdbcType=INTEGER} ==> #{id,jdbcType=INTEGER}。
+   * </pre>
+   */
+  public static final String MYBATIS_GENERATOR_SQL_PROVIDER_PARAMETER_PREFIX = "(#\\{)\\w+(\\.)";
 }

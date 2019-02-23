@@ -1,90 +1,137 @@
 package cn.navyd.app.supermarket.base.dao;
 
-import java.sql.JDBCType;
 import org.apache.ibatis.jdbc.SQL;
-import org.mybatis.dynamic.sql.SqlColumn;
-import org.mybatis.dynamic.sql.SqlTable;
 import cn.navyd.app.supermarket.product.ProductDO;
 //import static java;
 
 public class ProductSqlProvider extends AbstractSqlProvider<ProductDO> {
-  static class ProductSqlTable extends BasicSqlTable {
-    final SqlColumn<String> productName = column("product_name", JDBCType.VARCHAR);
-    final SqlColumn<String> productionDate = column("production_date", JDBCType.VARCHAR);
-    final SqlColumn<String> shelf_life = column("shelf_life", JDBCType.VARCHAR);
-    final SqlColumn<String> product_unit = column("product_unit", JDBCType.TINYINT);
-    final SqlColumn<String> specification = column("specification", JDBCType.VARCHAR);
-    final SqlColumn<String> specification_unit = column("specification_unit", JDBCType.VARCHAR);
-    final SqlColumn<String> product_category_id = column("product_category_id");
-    final SqlColumn<String> product_category_name = column("product_category_name");
-    final SqlColumn<String> supplier_id = column("supplier_id");
-    final SqlColumn<String> supplier_name = column("product_category_id");
-    
-    protected ProductSqlTable(String name) {
-      super(name);
-    }
-  }
+  private static final String[] COLUMNS = {"id, product_name, production_date, shelf_life, product_unit, specification, ",
+      "specification_unit, product_category_id, product_category_name, supplier_id, ",
+      "supplier_name, gmt_create, gmt_modified"};
+  
+  private static final String BASE_COLUMNS = getColumnsString(COLUMNS); 
 
+      
   @Override
   protected String getTableName() {
     return "product";
   }
 
   @Override
-  protected String getExtraColumns() {
-    return "product_name, production_date, shelf_life, product_unit, specification, specification_unit, product_category_id, product_category_name, supplier_id, supplier_name";
+  protected String getBaseColumns() {
+    return BASE_COLUMNS;
   }
 
   public String save(ProductDO bean) {
-    return new SQL() {
-      {
-        INSERT_INTO(getTableName())
-        .VALUES("product_name", "#{name}")
-        .VALUES("production_date", "#{productionDate}")
-        .VALUES("product_unit", "#{productUnit}")
-        .VALUES("specification", "#{specification}")
-        .VALUES("specification_unit", "#{specificationUnit}")
-        .VALUES("product_category_id", "#{productCategoryId}")
-        .VALUES("product_category_name", "#{productCategoryName}")
-        .VALUES("supplier_id", "#{supplierId}")
-        .VALUES("supplier_name", "#{supplierName}");
-        
-        if (bean.getShelfLife() != null)
-          VALUES("shelf_life", "#{shelfLife}");
-      }
-    }.toString();
+    SQL sql = new SQL();
+    sql.INSERT_INTO("product");
+    
+    if (bean.getName() != null) {
+        sql.VALUES("product_name", "#{name,jdbcType=VARCHAR}");
+    }
+    
+    if (bean.getProductionDate() != null) {
+        sql.VALUES("production_date", "#{productionDate,jdbcType=DATE}");
+    }
+    
+    if (bean.getShelfLife() != null) {
+        sql.VALUES("shelf_life", "#{shelfLife,jdbcType=SMALLINT}");
+    }
+    
+    if (bean.getProductUnit() != null) {
+        sql.VALUES("product_unit", "#{productUnit,jdbcType=TINYINT}");
+    }
+    
+    if (bean.getSpecification() != null) {
+        sql.VALUES("specification", "#{specification,jdbcType=INTEGER}");
+    }
+    
+    if (bean.getSpecificationUnit() != null) {
+        sql.VALUES("specification_unit", "#{specificationUnit,jdbcType=TINYINT}");
+    }
+    
+    if (bean.getProductCategoryId() != null) {
+        sql.VALUES("product_category_id", "#{productCategoryId,jdbcType=INTEGER}");
+    }
+    
+    if (bean.getProductCategoryName() != null) {
+        sql.VALUES("product_category_name", "#{productCategoryName,jdbcType=VARCHAR}");
+    }
+    
+    if (bean.getSupplierId() != null) {
+        sql.VALUES("supplier_id", "#{supplierId,jdbcType=INTEGER}");
+    }
+    
+    if (bean.getSupplierName() != null) {
+        sql.VALUES("supplier_name", "#{supplierName,jdbcType=VARCHAR}");
+    }
+    
+    if (bean.getGmtCreate() != null) {
+        sql.VALUES("gmt_create", "#{gmtCreate,jdbcType=TIMESTAMP}");
+    }
+    
+    if (bean.getGmtModified() != null) {
+        sql.VALUES("gmt_modified", "#{gmtModified,jdbcType=TIMESTAMP}");
+    }
+    
+    return sql.toString();
   }
-
+  
   public String updateByPrimaryKey(ProductDO bean) {
-    return new SQL() {
-      {
-        UPDATE(getTableName());
-        
-        if (bean.getName() != null)
-          SET("product_name = #{name}");
-        
-        if (bean.getProductionDate() != null)
-          SET("production_date = #{productionDate}");
-        
-        if (bean.getShelfLife() != null)
-          SET("shelf_life = #{shelfLife}");
-        
-        if (bean.getProductUnit() != null)
-          SET("product_unit = #{productUnit}");
-        SqlTable a;
-        if (isNotNull(bean.getSpecification()))
-          SET("specification = #{specification}");
-        
-        if (isNotNull(bean.getProductSpecificationUnit()))
-          SET("specification = #{specification}");
-        if (isNotNull(bean.getSpecification()))
-          SET("specification = #{specification}");
-        if (isNotNull(bean.getSpecification()))
-          SET("specification = #{specification}");
-        if (isNotNull(bean.getSpecification()))
-          SET("specification = #{specification}");
-      }
-    }.toString();
+    SQL sql = new SQL();
+    sql.UPDATE("product");
+    
+    if (bean.getName() != null) {
+        sql.SET("product_name = #{name,jdbcType=VARCHAR}");
+    }
+    
+    if (bean.getProductionDate() != null) {
+        sql.SET("production_date = #{productionDate,jdbcType=DATE}");
+    }
+    
+    if (bean.getShelfLife() != null) {
+        sql.SET("shelf_life = #{shelfLife,jdbcType=SMALLINT}");
+    }
+    
+    if (bean.getProductUnit() != null) {
+        sql.SET("product_unit = #{productUnit,jdbcType=TINYINT}");
+    }
+    
+    if (bean.getSpecification() != null) {
+        sql.SET("specification = #{specification,jdbcType=INTEGER}");
+    }
+    
+    if (bean.getSpecificationUnit() != null) {
+        sql.SET("specification_unit = #{specificationUnit,jdbcType=TINYINT}");
+    }
+    
+    if (bean.getProductCategoryId() != null) {
+        sql.SET("product_category_id = #{productCategoryId,jdbcType=INTEGER}");
+    }
+    
+    if (bean.getProductCategoryName() != null) {
+        sql.SET("product_category_name = #{productCategoryName,jdbcType=VARCHAR}");
+    }
+    
+    if (bean.getSupplierId() != null) {
+        sql.SET("supplier_id = #{supplierId,jdbcType=INTEGER}");
+    }
+    
+    if (bean.getSupplierName() != null) {
+        sql.SET("supplier_name = #{supplierName,jdbcType=VARCHAR}");
+    }
+    
+    if (bean.getGmtCreate() != null) {
+        sql.SET("gmt_create = #{gmtCreate,jdbcType=TIMESTAMP}");
+    }
+    
+    if (bean.getGmtModified() != null) {
+        sql.SET("gmt_modified = #{gmtModified,jdbcType=TIMESTAMP}");
+    }
+    
+    sql.WHERE("id = #{id,jdbcType=INTEGER}");
+    
+    return sql.toString();
   }
 
 }

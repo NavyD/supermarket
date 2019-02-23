@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE generatorConfiguration
+  PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"
+  "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+
+<generatorConfiguration>
+	<properties resource="generatorConfig.properties"/>
+	
+	<classPathEntry location="${cp.rootClassPath}" />
+	
+	<context id="MysqlTables" targetRuntime="MyBatis3">
+		<commentGenerator>
+			<property name="suppressAllComments" value="true"/>
+		</commentGenerator>
+		
+		<jdbcConnection
+			driverClass="${db.driverClass}"
+			connectionURL="${db.url}" 
+			userId="${db.username}" 
+			password="${db.password}">
+			<property name="nullCatalogMeansCurrent" value="true" />
+		</jdbcConnection>
+		
+		<javaTypeResolver>
+			<property name="forceBigDecimals" value="true" />
+			<property name="useJSR310Types" value="true"/>
+		</javaTypeResolver>
+
+		<javaModelGenerator targetPackage="${basicPackageTest}.model"
+			targetProject="${targetProject}">
+			<property name="rootClass" value="${basicPackage}.base.BaseDO"/>
+		</javaModelGenerator>
+		
+		<javaClientGenerator 
+			type="ANNOTATEDMAPPER"
+			targetPackage="${basicPackageTest}.mapper" 
+			targetProject="${targetProject}">
+		</javaClientGenerator>
+
+		<table tableName="product"
+			domainObjectName="productDO"
+			mapperName="ProductDao"
+			sqlProviderName="ProductSqlProvider"
+			enableSelectByExample="false"
+			enableUpdateByExample="false"
+			>
+			<property name="useActualColumnNames" value="false" />
+			<generatedKey column="id" sqlStatement="mysql"
+				identity="true" />
+			<columnOverride 
+				column="product_name"
+				property="name" />
+			<columnOverride column="shelf_life" javaType="Integer"/>
+			<columnOverride 
+				column="product_unit" javaType="${basicPackage}.product.ProductUnitEnum"/>
+			<columnOverride 
+				column="specification_unit"
+				javaType="${basicPackage}.product.SpecificationUnitEnum"/>
+		</table>
+
+	</context>
+</generatorConfiguration>

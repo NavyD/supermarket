@@ -12,7 +12,7 @@ public interface ProductInfo extends PrimaryKey {
   
   Integer getSpecification();
   
-  ProductSpecificationUnitEnum getProductSpecificationUnit();
+  SpecificationUnitEnum getProductSpecificationUnit();
   
   default boolean isExpired() {
     return getProductionDate()

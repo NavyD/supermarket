@@ -6,7 +6,7 @@ import cn.navyd.app.supermarket.util.EnumUtils.EnumSequencer;
 import lombok.Getter;
 
 @Getter
-public enum ProductSpecificationUnitEnum implements EnumSequencer {
+public enum SpecificationUnitEnum implements EnumSequencer {
   // 重量单位
   MICROGRAM(1), GRAM(2), KILOGRAM(3), TONNE(4),
   // 容积单位
@@ -15,12 +15,12 @@ public enum ProductSpecificationUnitEnum implements EnumSequencer {
   MILLIMETER(21), CENTIMETER(22), DECIMETRE(23), METER(24), KILOMETER(25);
   
   static {
-    EnumUtils.checkUniqueEnumSequencer(ProductSpecificationUnitEnum.class);
+    EnumUtils.checkUniqueEnumSequencer(SpecificationUnitEnum.class);
   }
 
   private final int sequence;
 
-  ProductSpecificationUnitEnum(int sequence) {
+  SpecificationUnitEnum(int sequence) {
     this.sequence = sequence;
   }
   

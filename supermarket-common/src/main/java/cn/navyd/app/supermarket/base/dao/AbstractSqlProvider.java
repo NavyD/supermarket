@@ -1,10 +1,6 @@
 package cn.navyd.app.supermarket.base.dao;
 
-import java.lang.reflect.Field;
-import java.sql.JDBCType;
 import org.apache.ibatis.jdbc.SQL;
-import org.mybatis.dynamic.sql.SqlColumn;
-import org.mybatis.dynamic.sql.SqlTable;
 import cn.navyd.app.supermarket.base.BaseDO;
 
 /**
@@ -34,54 +30,16 @@ public abstract class AbstractSqlProvider<T extends BaseDO> {
   protected static final String COLUMN_DELITER = ",";
   
   /**
-   * 基本的表。包含{@link BaseDO}的字段
-   * @author navyd
-   *
+   * 将指定的colums string数组连接','为一个字符串。仅连接各个字符串，不做其他
+   * @param columns
+   * @return
    */
-  static class BasicSqlTable extends SqlTable {
-    final SqlColumn<Integer> id = column("id", JDBCType.INTEGER);
-    final SqlColumn<Integer> gmtCreate = column("gmt_create", JDBCType.TIMESTAMP);
-    final SqlColumn<Integer> gmtModified = column("gmt_modified", JDBCType.TIMESTAMP);
-
-    protected BasicSqlTable(String name) {
-      super(name);
+  static String getColumnsString(String[] columns) {
+    StringBuilder sb = new StringBuilder();
+    for (String cols : columns) {
+        sb.append(cols);
     }
-    
-    public String getColumns() {
-      return getColumns(", ");
-    }
-
-    /**
-     * 将BasicSqlTable的列字段使用delimiter分割并返回字符串形式的列
-     * @param delimiter
-     * @return
-     */
-    public String getColumns(String delimiter) {
-      StringBuilder sb = new StringBuilder();
-      Class<?> clazz = getClass();
-      try {
-        while (clazz != null && BasicSqlTable.class.isAssignableFrom(clazz)) {
-          Field[] fields = clazz.getDeclaredFields();
-          for (Field f : fields) {
-            Class<?> type = f.getType();
-            if (type.isAssignableFrom(SqlColumn.class)) {
-              SqlColumn<?> column = (SqlColumn<?>) f.get(this);
-              sb.append(column.name()).append(delimiter);
-            }
-          }
-          clazz = clazz.getSuperclass();
-        }
-      } catch (IllegalArgumentException | IllegalAccessException e) {
-        throw new RuntimeException(e.getMessage());
-      }
-      if (sb.length() > delimiter.length())
-        sb.delete(sb.length() - delimiter.length(), sb.length());
-      return sb.toString();
-    }
-  }
-
-  static final boolean isNotNull(Object obj) {
-    return obj != null;
+    return sb.toString();
   }
 
   static String renameColumns(String table, String columns) {
@@ -121,8 +79,8 @@ public abstract class AbstractSqlProvider<T extends BaseDO> {
     }.toString();
   }
 
-  public final String listPage(Integer pageNum, Integer pageSize, Integer lastId) {
-    final int fromIndex = pageNum * pageSize, size = pageSize;
+  public final String listPage(Integer pageNumber, Integer pageSize, Integer lastId) {
+    final int fromIndex = pageNumber * pageSize, size = pageSize;
     return new SQL() {
       {
         SELECT(getBaseColumns()).FROM(getTableName());
@@ -163,5 +121,7 @@ public abstract class AbstractSqlProvider<T extends BaseDO> {
    * @see #getBaseColumns()
    * @return
    */
-  protected abstract String getExtraColumns();
+  protected String getExtraColumns() {
+    return "";
+  }
 }
