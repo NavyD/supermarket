@@ -1,5 +1,7 @@
 package cn.navyd.app.supermarket.util;
 
+import java.util.Collection;
+
 /**
  * 观察者模式。被观察的资源应该实现的接口，通过该接口可以在实现类资源被改变时通知观察者
  * @see Observer
@@ -28,6 +30,16 @@ public interface Observable<T> {
    * @return
    */
   Observable<T> register(Observer<T> observer);
+  
+  /**
+   * 注册多个observer
+   * @param observers
+   * @return
+   */
+  default Observable<T> registerAll(Collection<Observer<T>> observers) {
+    observers.forEach(this::register);
+    return this;
+  }
   
   /**
    * 移除指定的Observer，不再观察该资源的变化。
