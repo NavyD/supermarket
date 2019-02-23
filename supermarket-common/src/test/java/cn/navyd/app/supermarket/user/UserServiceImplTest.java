@@ -132,7 +132,6 @@ public class UserServiceImplTest extends BaseServiceTest {
     String password = "1234";
     String email = getTestData("email@aa.com");
     String phoneNumber = getTestData("00010");
-    String icon = getTestData("/test/1");
     var user = new UserDO();
     user.setEmail(email);
     user.setEnabled(true);
@@ -155,7 +154,6 @@ public class UserServiceImplTest extends BaseServiceTest {
     String password = "1234";
     String email = getTestData("email@aa.com");
     String phoneNumber = getTestData("00010");
-    String icon = getTestData("/test/1");
     var user = new UserDO();
     user.setEmail(email);
     user.setEnabled(true);
@@ -174,7 +172,6 @@ public class UserServiceImplTest extends BaseServiceTest {
     String password = "1234";
     String email = null;
     String phoneNumber = getTestData("00010");
-    String icon = getTestData("/test/1");
     var user = new UserDO();
     user.setEmail(email);
     user.setEnabled(true);
