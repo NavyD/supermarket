@@ -20,6 +20,24 @@ public class EnumUtilsTest {
         .isInstanceOf(IllegalArgumentException.class);
     EnumUtils.checkUniqueEnumSequencer(NonRepeatedSequencer.class);
   }
+  
+  @Test
+  void ofSequenceTest() {
+    int sequence = 1;
+    assertThat(EnumUtils.ofSequence(NonRepeatedSequencer.class, sequence, false))
+      .isPresent().get()
+      .isEqualTo(NonRepeatedSequencer.FIRST);
+    sequence = 2;
+    assertThat(EnumUtils.ofSequence(NonRepeatedSequencer.class, sequence, true))
+      .isPresent().get()
+      .isEqualTo(NonRepeatedSequencer.SECOND);
+    sequence = -10;
+    assertThat(EnumUtils.ofSequence(NonRepeatedSequencer.class, sequence, false))
+      .isEmpty();
+    
+    assertThatThrownBy(() -> EnumUtils.ofSequence(RepeatedSequencer.class, 1, true))
+      .isInstanceOf(IllegalArgumentException.class);
+  }
 
   @Getter
   private static enum RepeatedSequencer implements EnumSequencer {
