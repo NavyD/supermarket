@@ -1,5 +1,6 @@
 package cn.navyd.app.supermarket.productcategory;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import java.util.Collection;
 import cn.navyd.app.supermarket.base.AbstractBaseService;
 import cn.navyd.app.supermarket.base.DuplicateException;
@@ -15,14 +16,13 @@ public class ProductCategoryServiceImpl extends AbstractBaseService<ProductCateg
 
   @Override
   public Collection<ProductCategoryDO> listChildrenByPrimaryKey(Integer id) {
-    // 检查id 是否存在
-    checkNotFoundByPrimaryKey(id);
+    checkArgument(id != null && id >= 0);
     return productCategoryDao.listChildrenByPrimaryKey(id);
   }
 
   @Override
   public Collection<ProductCategoryDO> listDescendantsByPrimaryKey(Integer id) {
-    checkNotFoundByPrimaryKey(id);
+    checkArgument(id != null && id >= 0);
     return productCategoryDao.listDescendantsByPrimaryKey(id);
   }
 
