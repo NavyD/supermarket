@@ -47,5 +47,35 @@ public class ProductCategorySqlProvider extends AbstractSqlProvider<ProductCateg
     
     return sql.toString();
   }
+  
+  public String listChildrenByPrimaryKey(Integer id) {
+    return new SQL() {
+      {
+        SELECT(getBaseColumns())
+        .FROM(getTableName())
+        .WHERE("parent_id = #{id}");
+      }
+    }.toString();
+  }
+  
+  public String listDescendantsByPrimaryKey(Integer id) {
+    StringBuilder sb = new StringBuilder();
+    sb.append("with recursive cte (")
+      .append(getBaseColumns())
+      .append(") as (select ")
+      .append(getBaseColumns())
+      .append(" from ")
+      .append(getTableName())
+      .append(" where parent_id = #{id}")
+      .append(" union all ")
+      .append(" select ")
+      .append(renameColumns("p", getBaseColumns()))
+      .append(" from ")
+      .append(getTableName()).append(" p ")
+      .append(" inner join cte on p.parent_id = cte.id) ")
+      .append("select ").append(getBaseColumns())
+      .append(" from cte");
+    return sb.toString();
+  }
 
 }

@@ -6,6 +6,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import cn.navyd.app.supermarket.base.ReadOnlyDao;
 import cn.navyd.app.supermarket.config.Qualifiers.EmailForgotSecureCodeServiceQualifier;
 import cn.navyd.app.supermarket.config.Qualifiers.EmailRegisterSecureCodeServiceQualifier;
+import cn.navyd.app.supermarket.productcategory.ProductCategoryDao;
+import cn.navyd.app.supermarket.productcategory.ProductCategoryServiceImpl;
 import cn.navyd.app.supermarket.role.RoleDO;
 import cn.navyd.app.supermarket.role.RoleDao;
 import cn.navyd.app.supermarket.role.RoleService;
@@ -63,6 +65,12 @@ public class ServiceConfig {
   public RoleServiceImpl roleServiceImpl(ReadOnlyDao<UserDO> userDao, RoleDao roleDao) {
     RoleServiceImpl bean = new RoleServiceImpl(roleDao);
     bean.setUserDao(userDao);
+    return bean;
+  }
+
+  @Bean
+  public ProductCategoryServiceImpl productCategoryServiceImpl(ProductCategoryDao productCategoryDao) {
+    var bean = new ProductCategoryServiceImpl(productCategoryDao);
     return bean;
   }
 

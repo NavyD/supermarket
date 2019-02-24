@@ -54,9 +54,21 @@ public interface ProductCategoryDao extends BaseDao<ProductCategoryDO> {
   @Override
   void removeByPrimaryKey(Integer id);
 
-  // 获取当前节点下的孩子节点
+  /**
+   *  获取当前节点下的孩子节点
+   * @param id
+   * @return
+   */
+  @ResultMap(RESULT_MAP_ID)
+  @SelectProvider(type=ProductCategorySqlProvider.class, method="listChildrenByPrimaryKey")
   Collection<ProductCategoryDO> listChildrenByPrimaryKey(Integer id);
 
-  // 获取当前节点下所有孩子节点
+  /**
+   * 获取当前节点下所有孩子节点
+   * @param id
+   * @return
+   */
+  @ResultMap(RESULT_MAP_ID)
+  @SelectProvider(type=ProductCategorySqlProvider.class, method="listDescendantsByPrimaryKey")
   Collection<ProductCategoryDO> listDescendantsByPrimaryKey(Integer id);
 }
