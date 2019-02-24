@@ -15,11 +15,21 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
-import cn.navyd.app.supermarket.BaseServiceTest;
+import cn.navyd.app.supermarket.BaseTest;
 import cn.navyd.app.supermarket.base.ServiceException;
+import cn.navyd.app.supermarket.config.DaoConfig;
+import cn.navyd.app.supermarket.config.DatasourceConfig;
+import cn.navyd.app.supermarket.config.EmailProperties;
+import cn.navyd.app.supermarket.config.MyBatisConfig;
+import cn.navyd.app.supermarket.config.SecurityConfig;
+import cn.navyd.app.supermarket.config.ServiceConfig;
+import cn.navyd.app.supermarket.config.SupermarketProfiles;
 import cn.navyd.app.supermarket.role.RoleDO;
 import cn.navyd.app.supermarket.role.RoleNotFoundException;
 import cn.navyd.app.supermarket.role.RoleService;
@@ -35,7 +45,10 @@ import cn.navyd.app.supermarket.util.PageInfo;
 import cn.navyd.app.supermarket.util.PageUtils;
 
 @ExtendWith(MockitoExtension.class)
-public class UserServiceImplTest extends BaseServiceTest {
+@ActiveProfiles(profiles = SupermarketProfiles.DEVELOPMENT)
+@EnableConfigurationProperties
+@SpringBootTest(classes= {DaoConfig.class, DatasourceConfig.class, MyBatisConfig.class, ServiceConfig.class, SecurityConfig.class, EmailProperties.class})
+public class UserServiceImplTest extends BaseTest {
   private static final PasswordEncoder PASSWORD_ENCODER = PasswordEncoderFactories.createDelegatingPasswordEncoder();
   @Autowired
   private UserDao userDao;
@@ -57,7 +70,7 @@ public class UserServiceImplTest extends BaseServiceTest {
 
   
   @BeforeEach
-  void setup() {
+  public void setup() {
     MockitoAnnotations.initMocks(this);
     final int id = 1, secondId = 2;
     this.user = userDao.getByPrimaryKey(id);
@@ -74,7 +87,7 @@ public class UserServiceImplTest extends BaseServiceTest {
   }
   
   @Test
-  void listPageTest() {
+  public void listPageTest() {
     int totalRows = userDao.countTotalRows();
     int pageNumber = 0, pageSize = 10;
     PageInfo<UserDO> users = userService.listPage(pageNumber, pageSize);
@@ -89,13 +102,13 @@ public class UserServiceImplTest extends BaseServiceTest {
   }
   
   @Test
-  void listPageExceptionTest() {
+  public void listPageExceptionTest() {
     final int pageNumber = Integer.MAX_VALUE, pageSize = 10;
     assertThatThrownBy(() -> userService.listPage(pageNumber, pageSize)).isInstanceOf(IllegalArgumentException.class);
   }
   
   @Test
-  void listPageLastIdTest() {
+  public void listPageLastIdTest() {
     final int lastId = user.getId();
     int totalRows = userDao.countRowsByLastId(lastId);
     int pageNumber = 0, pageSize = 10;
@@ -111,7 +124,7 @@ public class UserServiceImplTest extends BaseServiceTest {
   }
   
   @Test
-  void getByEmailTest() {
+  public void getByEmailTest() {
     String email = user.getEmail();
     assertThat(userService.getByEmail(email))
       .isPresent()
@@ -127,7 +140,7 @@ public class UserServiceImplTest extends BaseServiceTest {
   
   @Transactional
   @Test
-  void saveTest() {
+  public void saveTest() {
     String username = getTestData("测试用户");
     String password = "1234";
     String email = getTestData("email@aa.com");
@@ -149,7 +162,7 @@ public class UserServiceImplTest extends BaseServiceTest {
   
   @Transactional
   @Test
-  void saveDuplicateUsernameTest() {
+  public void saveDuplicateUsernameTest() {
     String username = user.getUsername();
     String password = "1234";
     String email = getTestData("email@aa.com");
@@ -167,7 +180,7 @@ public class UserServiceImplTest extends BaseServiceTest {
   
   @Transactional
   @Test
-  void saveOtherExceptionTest() {
+  public void saveOtherExceptionTest() {
     String username = getTestData("user");
     String password = "1234";
     String email = null;
@@ -186,7 +199,7 @@ public class UserServiceImplTest extends BaseServiceTest {
   
   @Transactional
   @Test
-  void updateByPrimaryKeyTest() {
+  public void updateByPrimaryKeyTest() {
     var updateUser = getUpdateUser();
     updateUser.setId(user.getId());
     String[] ignoredProperties = {BASE_PROPERTIES[1], BASE_PROPERTIES[2]};
@@ -198,7 +211,7 @@ public class UserServiceImplTest extends BaseServiceTest {
   
   @Transactional
   @Test
-  void updateByPrimaryKeyExceptionTest() {
+  public void updateByPrimaryKeyExceptionTest() {
     var updateUser = getUpdateUser();
     updateUser.setId(user.getId());
     String[] ignoredProperties = {BASE_PROPERTIES[1], BASE_PROPERTIES[2]};
@@ -216,7 +229,7 @@ public class UserServiceImplTest extends BaseServiceTest {
   
   @Transactional
   @Test
-  void removeByPrimaryKeyTest() {
+  public void removeByPrimaryKeyTest() {
     int id = user.getId();
     userService.removeByPrimaryKey(id);
     assertThat(userService.getByPrimaryKey(id)).isEmpty();
@@ -224,7 +237,7 @@ public class UserServiceImplTest extends BaseServiceTest {
 
   @Transactional
   @Test
-  void registerTest() {
+  public void registerTest() {
     RegisterUserForm user = new RegisterUserForm();
     user.setEmail("aabb@email.com");
     user.setUsername(getTestData("user"));
@@ -246,7 +259,7 @@ public class UserServiceImplTest extends BaseServiceTest {
   
   @Transactional
   @Test
-  void registerDuplicateUsernameTest() {
+  public void registerDuplicateUsernameTest() {
     RegisterUserForm userForm = new RegisterUserForm();
     // 重复的username
     userForm.setUsername(user.getUsername());
@@ -262,7 +275,7 @@ public class UserServiceImplTest extends BaseServiceTest {
   
   @Transactional
   @Test
-  void registerDuplicateEmailTest() {
+  public void registerDuplicateEmailTest() {
     RegisterUserForm userForm = new RegisterUserForm();
     // 重复的username
     userForm.setUsername(getTestData("user"));
@@ -277,7 +290,7 @@ public class UserServiceImplTest extends BaseServiceTest {
   }
   
   @Test
-  void sendRegisteringCodeByEmail() {
+  public void sendRegisteringCodeByEmail() {
     String email = "232@qq.com";
     userService.sendRegisteringCodeByEmail(email);
     verify(emailRegisterService).sendCode(email);
@@ -288,7 +301,7 @@ public class UserServiceImplTest extends BaseServiceTest {
   }
 
   @Test
-  void sendForgotPasswordCodeByEmailTest() {
+  public void sendForgotPasswordCodeByEmailTest() {
     String email = user.getEmail();
     userService.sendForgotPasswordCodeByEmail(email);
     verify(emailForgotPasswordService).sendCode(email);
@@ -300,7 +313,7 @@ public class UserServiceImplTest extends BaseServiceTest {
   
   @Transactional
   @Test
-  void resetPasswordWithCodeTest() {
+  public void resetPasswordWithCodeTest() {
     SecureCodeUserForm userForm = new SecureCodeUserForm();
     userForm.setCode(forgotPasswordCode);
     userForm.setId(user.getId());
@@ -321,7 +334,7 @@ public class UserServiceImplTest extends BaseServiceTest {
   
   @Transactional
   @Test
-  void resetPasswordWithOldPasswordTest() {
+  public void resetPasswordWithOldPasswordTest() {
     OldPasswordUserForm userForm = new OldPasswordUserForm();
     userForm.setId(user.getId());
     userForm.setNewPassword("1234321");
@@ -338,7 +351,7 @@ public class UserServiceImplTest extends BaseServiceTest {
   
   @Transactional
   @Test
-  void resetPasswordWithOldPasswordFailedTest() {
+  public void resetPasswordWithOldPasswordFailedTest() {
     OldPasswordUserForm userForm = new OldPasswordUserForm();
     String rawPasswordFailed = getTestData("passw");
     userForm.setId(user.getId());
@@ -354,7 +367,7 @@ public class UserServiceImplTest extends BaseServiceTest {
   
   @Transactional
   @Test
-  void loginTest() {
+  public void loginTest() {
     String username = user.getUsername(), rawPassword = this.rawPassword;
     var loginedUser = userService.login(username, rawPassword);
     assertThat(loginedUser)
@@ -364,7 +377,7 @@ public class UserServiceImplTest extends BaseServiceTest {
   
   @Transactional
   @Test
-  void loginFailedCountTest() {
+  public void loginFailedCountTest() {
     final String username = user.getUsername(), rawPasswordFailed = "asdfadsfas";
     final int failedLoop = 5;
     for (int i = 0; i < failedLoop; i++) {
@@ -383,7 +396,7 @@ public class UserServiceImplTest extends BaseServiceTest {
   
   @Transactional
   @Test
-  void loginPasswordFailedThenSuccessfulTest() {
+  public void loginPasswordFailedThenSuccessfulTest() {
     final String username = user.getUsername(), rawPasswordFailed = "asdfadsfas";
     assertThatThrownBy(() -> userService.login(username, rawPasswordFailed))
       .isInstanceOf(IncorrectPasswordException.class);
@@ -399,7 +412,7 @@ public class UserServiceImplTest extends BaseServiceTest {
   }
   
   @Test
-  void loginUsernameFailedThenSuccessfulTest() {
+  public void loginUsernameFailedThenSuccessfulTest() {
     final String username = getTestData("username");
     assertThatThrownBy(() -> userService.login(username, rawPassword))
       .isInstanceOf(UserNotFoundException.class);
@@ -407,7 +420,7 @@ public class UserServiceImplTest extends BaseServiceTest {
   
   @Transactional
   @Test
-  void loginUnenabledTest() {
+  public void loginUnenabledTest() {
     var updateUneabledUser = new UserDO();
     updateUneabledUser.setId(user.getId());
     updateUneabledUser.setEnabled(false);
@@ -420,7 +433,7 @@ public class UserServiceImplTest extends BaseServiceTest {
   @SuppressWarnings("unchecked")
   @Transactional
   @Test
-  void addRolesTest() {
+  public void addRolesTest() {
     int userId = user.getId();
     Collection<Integer> roleIds = Arrays.asList(4, 5);
     assertThat(userService.addRoles(userId, roleIds))
@@ -431,7 +444,7 @@ public class UserServiceImplTest extends BaseServiceTest {
   
   @Transactional
   @Test
-  void addRolesNotFoundRoleTest() {
+  public void addRolesNotFoundRoleTest() {
     int userId = user.getId();
     Collection<Integer> roleIds = Arrays.asList(Integer.MAX_VALUE, 5);
     assertThatThrownBy(() -> userService.addRoles(userId, roleIds)).isInstanceOf(RoleNotFoundException.class);
@@ -439,7 +452,7 @@ public class UserServiceImplTest extends BaseServiceTest {
   
   @Transactional
   @Test
-  void removeRolesTest() {
+  public void removeRolesTest() {
     int roleId = 1, userId = user.getId();
     assertThat(userService.removeRoles(userId, roleId))
       .isNotNull()
