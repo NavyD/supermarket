@@ -1,6 +1,7 @@
 package cn.navyd.app.supermarket;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -25,28 +26,34 @@ import cn.navyd.app.supermarket.util.PageUtils;
 @SpringBootTest(classes= {DaoConfig.class, DatasourceConfig.class, MyBatisConfig.class})
 @ActiveProfiles(profiles = SupermarketProfiles.DEVELOPMENT)
 public abstract class BaseDaoTest<T extends BaseDO> extends BaseTest {
+  private BasicDaoTestData<T> data;
+  
+  @BeforeEach
+  void setup() {
+    this.data = getBasicDaoTestData();
+  }
   
   @Test
   void countTotalRowsTest() {
-    int rows = getTotalRows();
-    assertThat(getBaseDao().countTotalRows()).isNotNull().isEqualTo(rows);
+    int rows = data.getTotalRows();
+    assertThat(data.getBaseDao().countTotalRows()).isNotNull().isEqualTo(rows);
   }
   
   @Test
   void countRowsByLastIdTest() {
-    int lastId = getLastId();
-    int remainderRows = getTotalRows() - lastId;
-    assertThat(getBaseDao().countRowsByLastId(lastId)).isNotNull().isEqualTo(remainderRows);
+    int lastId = data.getLastId();
+    int remainderRows = data.getTotalRows() - lastId;
+    assertThat(data.getBaseDao().countRowsByLastId(lastId)).isNotNull().isEqualTo(remainderRows);
   }
   
   @Test
   void getByPrimaryKeyTest() {
-    int id = getFirstId();
-    var dao = getBaseDao();
+    int id = data.getFirstId();
+    var dao = data.getBaseDao();
     assertThat(dao.getByPrimaryKey(id))
       .isNotNull()
       .hasNoNullFieldsOrProperties()
-      .isEqualToIgnoringGivenFields(getFirst(), BASE_PROPERTIES)
+      .isEqualToIgnoringGivenFields(data.getFirst(), BASE_PROPERTIES)
       .matches(p -> p.getId() == id);
     
     int invalidId = -1;
@@ -59,8 +66,8 @@ public abstract class BaseDaoTest<T extends BaseDO> extends BaseTest {
   @Transactional
   @Test
   public void getByPrimaryKeyCacheTest() {
-    var dao = getBaseDao();
-    int id = getFirstId();
+    var dao = data.getBaseDao();
+    int id = data.getFirstId();
     var bean = dao.getByPrimaryKey(id);
     assertThat(bean).isNotNull().hasNoNullFieldsOrProperties();
     // 修改 字段 将会导致 局部缓存被修改
@@ -73,20 +80,20 @@ public abstract class BaseDaoTest<T extends BaseDO> extends BaseTest {
   
   @Test
   void listPageTest() {
-    var dao = getBaseDao();
+    var dao = data.getBaseDao();
     int pageSize = Integer.MAX_VALUE, pageNum = 0;
-    final int totalRows = getTotalRows();
+    final int totalRows = data.getTotalRows();
     int expectedSize = PageUtils.getCurrentSize(totalRows, pageNum, pageSize);
     assertThat(dao.listPage(pageNum, pageSize, null))
       .isNotNull()
       .isNotEmpty()
       .hasSize(expectedSize)
       .doesNotContainNull()
-      .first().isEqualToIgnoringGivenFields(getFirst(), BASE_PROPERTIES);
+      .first().isEqualToIgnoringGivenFields(data.getFirst(), BASE_PROPERTIES);
     
     // 测试lastId
-    int lastId = getLastId();
-    expectedSize = getTotalRows() - lastId;
+    int lastId = data.getLastId();
+    expectedSize = data.getTotalRows() - lastId;
     assertThat(dao.listPage(pageNum, pageSize, lastId))
       .isNotNull()
       .isNotEmpty()
@@ -101,7 +108,7 @@ public abstract class BaseDaoTest<T extends BaseDO> extends BaseTest {
       .isNotEmpty()
       .hasSize(expectedSize)
       .doesNotContainNull()
-      .first().isEqualToIgnoringGivenFields(getFirst(), BASE_PROPERTIES);
+      .first().isEqualToIgnoringGivenFields(data.getFirst(), BASE_PROPERTIES);
     
     // 测试最后一页
     pageSize = totalRows-1;
@@ -116,8 +123,8 @@ public abstract class BaseDaoTest<T extends BaseDO> extends BaseTest {
   @Transactional
   @Test
   void saveTest() {
-    var savable = getSavable();
-    var dao = getBaseDao();
+    var savable = data.getSavable();
+    var dao = data.getBaseDao();
     assertThat(savable)
       .isNotNull()
       .hasNoNullFieldsOrPropertiesExcept(BASE_PROPERTIES);
@@ -132,11 +139,11 @@ public abstract class BaseDaoTest<T extends BaseDO> extends BaseTest {
   @Transactional
   @Test
   void updateByPrimaryKeyTest() {
-    var dao = getBaseDao();
-    final int firstId = getFirstId();
+    var dao = data.getBaseDao();
+    final int firstId = data.getFirstId();
     var existingBean = dao.getByPrimaryKey(firstId);
     assertThat(existingBean).isNotNull();
-    var savable = getSavable();
+    var savable = data.getSavable();
     assertThat(savable)
       .isNotNull()
       .hasNoNullFieldsOrPropertiesExcept(BASE_PROPERTIES);
@@ -155,8 +162,8 @@ public abstract class BaseDaoTest<T extends BaseDO> extends BaseTest {
   @Transactional
   @Test
   void removeByPrimaryKeyTest() {
-    var dao = getBaseDao();
-    int firstId = getFirstId();
+    var dao = data.getBaseDao();
+    int firstId = data.getFirstId();
     assertThat(dao.getByPrimaryKey(firstId)).isNotNull();
     dao.removeByPrimaryKey(firstId);
     assertThat(dao.getByPrimaryKey(firstId)).isNull();
@@ -165,7 +172,9 @@ public abstract class BaseDaoTest<T extends BaseDO> extends BaseTest {
   /**
    * 获取lastId测试countRowsByLastId，默认返回getTotalRows() - 1
    * @return
+   * @deprecated {@link #getBasicDaoTestData()}
    */
+  @Deprecated
   protected int getLastId() {
     return getTotalRows() - 1;
   }
@@ -173,7 +182,9 @@ public abstract class BaseDaoTest<T extends BaseDO> extends BaseTest {
   /**
    * 获取第一个对象id。默认id=1
    * @return
+   * @deprecated {@link #getBasicDaoTestData()}
    */
+  @Deprecated
   protected int getFirstId() {
     return 1;
   }
@@ -181,24 +192,72 @@ public abstract class BaseDaoTest<T extends BaseDO> extends BaseTest {
   /**
    * 获取baseDao对象
    * @return
+   * @deprecated {@link #getBasicDaoTestData()}
    */
-  protected abstract BaseDao<T> getBaseDao();
+  @Deprecated
+  protected  BaseDao<T> getBaseDao() {
+    return null;
+  }
   
   /**
    * 返回第一个测试数据，不包含{@link BaseDO}字段。应该可以通过equals()判断
    * @return
+   * @deprecated {@link #getBasicDaoTestData()}
    */
-  protected abstract T getFirst();
+  @Deprecated
+  protected  T getFirst(){
+    return null;
+  }
   
   /**
    * 获取最大行数
    * @return
+   * @deprecated {@link #getBasicDaoTestData()}
    */
-  protected abstract int getTotalRows();
+  @Deprecated
+  protected  int getTotalRows(){
+    return 0;
+  }
   
   /**
    * 返回可保存的对象。要求对象仅{@link BaseDO}字段为null
    * @return
+   * @deprecated {@link #getBasicDaoTestData()}
    */
-  protected abstract T getSavable();
+  @Deprecated
+  protected  T getSavable() {
+    return null;
+  }
+  
+  /**
+   * 返回测试对象，多次调用应该返回同样的引用
+   * @return
+   */
+  protected BasicDaoTestData<T> getBasicDaoTestData() {
+    return new BasicDaoTestDataProxy();
+  }
+  
+  private class BasicDaoTestDataProxy implements BasicDaoTestData<T> {
+
+    @Override
+    public T getFirst() {
+      return BaseDaoTest.this.getFirst();
+    }
+
+    @Override
+    public int getTotalRows() {
+      return BaseDaoTest.this.getTotalRows();
+    }
+
+    @Override
+    public T getSavable() {
+      return BaseDaoTest.this.getSavable();
+    }
+
+    @Override
+    public BaseDao<T> getBaseDao() {
+      return BaseDaoTest.this.getBaseDao();
+    }
+    
+  }
 }
