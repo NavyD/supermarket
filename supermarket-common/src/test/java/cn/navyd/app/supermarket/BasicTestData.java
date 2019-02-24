@@ -1,5 +1,6 @@
 package cn.navyd.app.supermarket;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import cn.navyd.app.supermarket.base.BaseDO;
 
 /**
@@ -41,5 +42,22 @@ public interface BasicTestData<T extends BaseDO> {
    */
   default int getFirstId() {
     return 1;
+  }
+  
+  /**
+   * 默认200长度
+   * @return
+   */
+  default String getOverlengthString() {
+    return getOverlengthString(200);
+  }
+  
+  default String getOverlengthString(int length) {
+    checkArgument(length > 0 && length < 1000);
+    char ch = 'a';
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < length; i++)
+      sb.append(ch);
+    return sb.toString();
   }
 }

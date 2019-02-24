@@ -26,7 +26,7 @@ import cn.navyd.app.supermarket.util.PageUtils;
 @SpringBootTest(classes= {DaoConfig.class, DatasourceConfig.class, MyBatisConfig.class})
 @ActiveProfiles(profiles = SupermarketProfiles.DEVELOPMENT)
 public abstract class BaseDaoTest<T extends BaseDO> extends BaseTest {
-  private BasicDaoTestData<T> data;
+  protected BasicDaoTestData<T> data;
   
   @BeforeEach
   void setup() {
