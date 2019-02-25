@@ -29,7 +29,7 @@ public interface ProductCategoryDao extends BaseDao<ProductCategoryDO> {
   @SelectProvider(type=ProductCategorySqlProvider.class, method="getByPrimaryKey")
   @Results(id=RESULT_MAP_ID, value={
       @Result(column="id", property="id", jdbcType=JdbcType.INTEGER, id=true),
-      @Result(column="category_name", property="categoryName", jdbcType=JdbcType.VARCHAR),
+      @Result(column="category_name", property="name", jdbcType=JdbcType.VARCHAR),
       @Result(column="parent_id", property="parentId", jdbcType=JdbcType.INTEGER),
       @Result(column="gmt_create", property="gmtCreate", jdbcType=JdbcType.TIMESTAMP),
       @Result(column="gmt_modified", property="gmtModified", jdbcType=JdbcType.TIMESTAMP)

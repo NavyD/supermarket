@@ -20,8 +20,8 @@ public class ProductCategorySqlProvider extends AbstractSqlProvider<ProductCateg
     SQL sql = new SQL();
     sql.INSERT_INTO("product_category");
     
-    if (bean.getCategoryName() != null) {
-        sql.VALUES("category_name", "#{categoryName,jdbcType=VARCHAR}");
+    if (bean.getName() != null) {
+        sql.VALUES("category_name", "#{name,jdbcType=VARCHAR}");
     }
     
     if (bean.getParentId() != null) {
@@ -35,8 +35,8 @@ public class ProductCategorySqlProvider extends AbstractSqlProvider<ProductCateg
     SQL sql = new SQL();
     sql.UPDATE("product_category");
     
-    if (bean.getCategoryName() != null) {
-        sql.SET("category_name = #{categoryName,jdbcType=VARCHAR}");
+    if (bean.getName() != null) {
+        sql.SET("category_name = #{name,jdbcType=VARCHAR}");
     }
     
     if (bean.getParentId() != null) {

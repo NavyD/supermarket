@@ -105,6 +105,7 @@
 			sqlProviderName="ProductCategorySqlProvider"
 			enableSelectByExample="false"
 			enableUpdateByExample="false">
+			<columnOverride column="category_name" property="name"/>
 		</table>
 	</context>
 </generatorConfiguration>

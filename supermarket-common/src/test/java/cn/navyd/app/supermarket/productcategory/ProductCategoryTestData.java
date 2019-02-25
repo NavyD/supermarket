@@ -17,7 +17,7 @@ public class ProductCategoryTestData extends BaseTest implements BasicTestData<P
     var first = new ProductCategoryDO();
     first.setId(1);
     first.setParentId(0);
-    first.setCategoryName("食品");
+    first.setName("食品");
     return first;
   }
 
@@ -30,7 +30,7 @@ public class ProductCategoryTestData extends BaseTest implements BasicTestData<P
   public ProductCategoryDO getSavable() {
     var pc = new ProductCategoryDO();
     pc.setParentId(Integer.MAX_VALUE);
-    pc.setCategoryName(getTestData("测试分类"));
+    pc.setName(getTestData("测试分类"));
     return pc;
   }
 

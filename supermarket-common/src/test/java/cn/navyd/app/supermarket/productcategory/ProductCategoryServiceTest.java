@@ -30,7 +30,7 @@ public class ProductCategoryServiceTest extends BaseServiceTest<ProductCategoryD
   @Override
   public void saveTestForDuplicateException() {
     var savable = data.getSavable();
-    savable.setCategoryName(data.getFirst().getCategoryName());
+    savable.setName(data.getFirst().getName());
     assertThatThrownBy(() -> productCategoryService.save(savable))
       .isInstanceOf(DuplicateProductCategoryException.class);
   }
@@ -41,7 +41,7 @@ public class ProductCategoryServiceTest extends BaseServiceTest<ProductCategoryD
   public void updateByPrimaryKeyTestForDuplicateException() {
     var lastUpdatable = data.getSavable();
     lastUpdatable.setId(data.getLastId());
-    lastUpdatable.setCategoryName(data.getFirst().getCategoryName());
+    lastUpdatable.setName(data.getFirst().getName());
     assertThatThrownBy(() -> productCategoryService.updateByPrimaryKey(lastUpdatable))
       .isInstanceOf(DuplicateProductCategoryException.class);
   }
@@ -56,7 +56,7 @@ public class ProductCategoryServiceTest extends BaseServiceTest<ProductCategoryD
   public void saveTestForOtherException() {
     var savable = data.getSavable();
     // 超过长度限制
-    savable.setCategoryName("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+    savable.setName("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
     assertThatThrownBy(() -> productCategoryService.save(savable)).isInstanceOf(ServiceException.class);
   }
 
@@ -67,7 +67,7 @@ public class ProductCategoryServiceTest extends BaseServiceTest<ProductCategoryD
     var updatable = data.getSavable();
     updatable.setId(data.getFirstId());
     // 超过长度限制
-    updatable.setCategoryName("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+    updatable.setName("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
     assertThatThrownBy(() -> productCategoryService.updateByPrimaryKey(updatable)).isInstanceOf(ServiceException.class);
   }
   
