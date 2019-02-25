@@ -476,18 +476,18 @@ create unique index uk_suppliername on supplier(supplier_name);
 select a.*
 from supplier_record
 inner join (
-    select product_id, max(time_supplied) time_supplied
+    select product_id, max(supplied_time) supplied_time
     from supplier_record
     group by product_id) b
-on a.product_id = b.product_id and a.time_supplied = b.time_supplied
+on a.product_id = b.product_id and a.supplied_time = b.supplied_time
 where a.product_id = 1
 
 -- 2.左连接 性能更好
 select a.*
 from supplier_record a
 left outer join supplier_record b
--- 过滤掉time_supplied>=，去除重复，保证当a.time_supplied(max)连接b时对应null
-on a.product_id = b.product_id and a.time_supplied < b.time_supplied 
+-- 过滤掉supplied_time>=，去除重复，保证当a.supplied_time(max)连接b时对应null
+on a.product_id = b.product_id and a.supplied_time < b.supplied_time 
 where b.product_id is null and a.product_id = 1
 ```
 
@@ -498,7 +498,7 @@ drop table if exists supplier_record;
 create table supplier_record(
     id int unsigned auto_increment primary key,
     -- 供应的时间
-    time_supplied datetime not null,
+    supplied_time datetime not null,
     -- 供应的价格
     unit_price_supply decimal(15, 2) unsigned not null,
     unit_price_return decimal(15, 2) unsigned not null,
@@ -507,9 +507,9 @@ create table supplier_record(
     gmt_create datetime not null default current_timestamp,
     gmt_modified datetime not null default current_timestamp on update current_timestamp
 );
-create unique index uk_productid_timesupplied on supplier_record(product_id, time_supplied);
+create unique index uk_productid_timesupplied on supplier_record(product_id, supplied_time);
 
-insert into supplier_record (time_supplied, unit_price_supply, unit_price_return, product_id) values('2018-07-10', 101.11, 98, 1), ('2018-07-12', 100.1, 90.1, 1), ('2018-07-19', 100.1, 90.1, 1),('2018-07-15', 15.2, 10.1, 2);
+insert into supplier_record (supplied_time, unit_price_supply, unit_price_return, product_id) values('2018-07-10', 101.11, 98, 1), ('2018-07-12', 100.1, 90.1, 1), ('2018-07-19', 100.1, 90.1, 1),('2018-07-15', 15.2, 10.1, 2);
 ```
 
 ### dao
