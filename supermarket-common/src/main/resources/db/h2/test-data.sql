@@ -32,3 +32,6 @@ insert into product_category(id, category_name, parent_id) values
 (16,'休闲小吃',1);
 
 insert into supplier(supplier_name) values('供应商1'), ('供应商2'), ('供应商3'), ('供应商4'), ('供应商5');
+
+insert into supplier_record (supplied_time, unit_price_supply, unit_price_return, product_id, product_name) values
+('2018-07-10', 101.11, 98.00, 1, '小龙虾'), ('2018-07-12', 100.1, 90.1, 1, '小龙虾'), ('2018-07-19', 100.1, 90.1, 1, '小龙虾'),('2018-07-15', 15.2, 10.1, 2, '酸菜鱼');

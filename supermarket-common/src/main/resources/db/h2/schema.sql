@@ -79,3 +79,18 @@ create table supplier (
     gmt_modified datetime not null default current_timestamp on update current_timestamp
 );
 create unique index uk_suppliername on supplier(supplier_name);
+
+drop table if exists supplier_record;
+create table supplier_record(
+    id int unsigned auto_increment primary key,
+    -- 供应的时间
+    supplied_time datetime not null,
+    -- 供应的价格
+    unit_price_supply decimal(15, 2) unsigned not null,
+    unit_price_return decimal(15, 2) unsigned not null,
+    product_id int unsigned not null,
+    product_name varchar(100) not null,
+    gmt_create datetime not null default current_timestamp,
+    gmt_modified datetime not null default current_timestamp on update current_timestamp
+);
+create unique index uk_productid_timesupplied on supplier_record(product_id, supplied_time);

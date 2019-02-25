@@ -115,5 +115,12 @@
 			enableUpdateByExample="false">
 			<columnOverride column="supplier_name" property="name"/>
 		</table>
+		<table tableName="supplier_record"
+			domainObjectName="SupplierRecordDO"
+			mapperName="SupplierRecordDao"
+			sqlProviderName="SupplierRecordSqlProvider"
+			enableSelectByExample="false"
+			enableUpdateByExample="false">
+		</table>
 	</context>
 </generatorConfiguration>
