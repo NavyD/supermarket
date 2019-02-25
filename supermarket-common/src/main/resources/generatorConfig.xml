@@ -107,5 +107,13 @@
 			enableUpdateByExample="false">
 			<columnOverride column="category_name" property="name"/>
 		</table>
+		<table tableName="supplier"
+			domainObjectName="SupplierDO"
+			mapperName="SupplierDao"
+			sqlProviderName="SupplierSqlProvider"
+			enableSelectByExample="false"
+			enableUpdateByExample="false">
+			<columnOverride column="supplier_name" property="name"/>
+		</table>
 	</context>
 </generatorConfiguration>

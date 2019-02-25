@@ -1,4 +1,4 @@
-package cn.navyd.app.supermarket.supplier;
+package cn.navyd.app.supermarket.supplier.record;
 
 import java.util.Collection;
 import cn.navyd.app.supermarket.base.BaseDao;

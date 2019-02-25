@@ -70,3 +70,12 @@ create table product_category(
     gmt_modified datetime not null default current_timestamp on update current_timestamp
 );
 create unique index uk_categoryname on product_category(category_name);
+
+drop table if exists supplier;
+create table supplier (
+    id int unsigned auto_increment primary key,
+    supplier_name varchar(50) not null,
+    gmt_create datetime not null default current_timestamp,
+    gmt_modified datetime not null default current_timestamp on update current_timestamp
+);
+create unique index uk_suppliername on supplier(supplier_name);

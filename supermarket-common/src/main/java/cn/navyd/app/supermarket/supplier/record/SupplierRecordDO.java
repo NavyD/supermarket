@@ -1,4 +1,4 @@
-package cn.navyd.app.supermarket.supplier;
+package cn.navyd.app.supermarket.supplier.record;
 
 import cn.navyd.app.supermarket.base.BaseDO;
 

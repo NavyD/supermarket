@@ -30,3 +30,5 @@ insert into product_category(id, category_name, parent_id) values
 (14,'酒',1),
 (15,'啤酒',14),
 (16,'休闲小吃',1);
+
+insert into supplier(supplier_name) values('供应商1'), ('供应商2'), ('供应商3'), ('供应商4'), ('供应商5');
