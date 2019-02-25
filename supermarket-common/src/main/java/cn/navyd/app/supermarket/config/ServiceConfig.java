@@ -12,6 +12,8 @@ import cn.navyd.app.supermarket.role.RoleDO;
 import cn.navyd.app.supermarket.role.RoleDao;
 import cn.navyd.app.supermarket.role.RoleService;
 import cn.navyd.app.supermarket.role.RoleServiceImpl;
+import cn.navyd.app.supermarket.supplier.SupplierDao;
+import cn.navyd.app.supermarket.supplier.SupplierServiceImpl;
 import cn.navyd.app.supermarket.user.UserDO;
 import cn.navyd.app.supermarket.user.UserDao;
 import cn.navyd.app.supermarket.user.UserServiceImpl;
@@ -71,6 +73,12 @@ public class ServiceConfig {
   @Bean
   public ProductCategoryServiceImpl productCategoryServiceImpl(ProductCategoryDao productCategoryDao) {
     var bean = new ProductCategoryServiceImpl(productCategoryDao);
+    return bean;
+  }
+  
+  @Bean
+  public SupplierServiceImpl supplierServiceImpl(SupplierDao supplierDao) {
+    var bean = new SupplierServiceImpl(supplierDao);
     return bean;
   }
 
