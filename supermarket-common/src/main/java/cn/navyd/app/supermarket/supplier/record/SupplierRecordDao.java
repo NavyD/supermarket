@@ -32,7 +32,6 @@ public interface SupplierRecordDao extends BaseDao<SupplierRecordDO> {
       @Result(column="unit_price_supply", property="unitPriceSupply", jdbcType=JdbcType.DECIMAL),
       @Result(column="unit_price_return", property="unitPriceReturn", jdbcType=JdbcType.DECIMAL),
       @Result(column="product_id", property="productId", jdbcType=JdbcType.INTEGER),
-      @Result(column="product_name", property="productName", jdbcType=JdbcType.VARCHAR),
       @Result(column="gmt_create", property="gmtCreate", jdbcType=JdbcType.TIMESTAMP),
       @Result(column="gmt_modified", property="gmtModified", jdbcType=JdbcType.TIMESTAMP)
   })

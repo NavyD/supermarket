@@ -19,6 +19,4 @@ public class SupplierRecordDO extends BaseDO {
   private BigDecimal unitPriceReturn;
 
   private Integer productId;
-
-  private String productName;
 }

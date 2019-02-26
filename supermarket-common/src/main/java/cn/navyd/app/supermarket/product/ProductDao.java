@@ -35,9 +35,7 @@ public interface ProductDao extends BaseDao<ProductDO> {
     @Result(column="specification", property="specification", jdbcType=JdbcType.INTEGER),
     @Result(column="specification_unit", property="specificationUnit", jdbcType=JdbcType.TINYINT),
     @Result(column="product_category_id", property="productCategoryId", jdbcType=JdbcType.INTEGER),
-    @Result(column="product_category_name", property="productCategoryName", jdbcType=JdbcType.VARCHAR),
     @Result(column="supplier_id", property="supplierId", jdbcType=JdbcType.INTEGER),
-    @Result(column="supplier_name", property="supplierName", jdbcType=JdbcType.VARCHAR),
     @Result(column="gmt_create", property="gmtCreate", jdbcType=JdbcType.TIMESTAMP),
     @Result(column="gmt_modified", property="gmtModified", jdbcType=JdbcType.TIMESTAMP)
 })

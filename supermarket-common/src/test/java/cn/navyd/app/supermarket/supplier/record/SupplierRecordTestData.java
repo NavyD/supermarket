@@ -19,7 +19,6 @@ public class SupplierRecordTestData implements BasicTestData<SupplierRecordDO> {
     sr.setUnitPriceSupply(BigDecimal.valueOf(101.11));
     sr.setUnitPriceReturn(BigDecimal.valueOf(98).setScale(2));
     sr.setProductId(1);
-    sr.setProductName("小龙虾");
     return sr;
   }
 
@@ -35,7 +34,6 @@ public class SupplierRecordTestData implements BasicTestData<SupplierRecordDO> {
     sr.setUnitPriceSupply(BigDecimal.valueOf(100.01));
     sr.setUnitPriceReturn(BigDecimal.valueOf(88.88));
     sr.setProductId(1);
-    sr.setProductName("小龙虾");
     return sr;
   }
 

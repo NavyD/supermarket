@@ -5,7 +5,7 @@ import cn.navyd.app.supermarket.base.AbstractSqlProvider;
 
 public class SupplierRecordSqlProvider extends AbstractSqlProvider<SupplierRecordDO> {
   private static final String BASE_COLUMNS =
-      "id, supplied_time, unit_price_supply, unit_price_return, product_id, product_name, gmt_create, gmt_modified";
+      "id, supplied_time, unit_price_supply, unit_price_return, product_id, gmt_create, gmt_modified";
 
   @Override
   protected String getBaseColumns() {
@@ -37,10 +37,6 @@ public class SupplierRecordSqlProvider extends AbstractSqlProvider<SupplierRecor
       sql.VALUES("product_id", "#{productId,jdbcType=INTEGER}");
     }
 
-    if (bean.getProductName() != null) {
-      sql.VALUES("product_name", "#{productName,jdbcType=VARCHAR}");
-    }
-
     return sql.toString();
   }
 
@@ -62,10 +58,6 @@ public class SupplierRecordSqlProvider extends AbstractSqlProvider<SupplierRecor
 
     if (bean.getProductId() != null) {
       sql.SET("product_id = #{productId,jdbcType=INTEGER}");
-    }
-
-    if (bean.getProductName() != null) {
-      sql.SET("product_name = #{productName,jdbcType=VARCHAR}");
     }
 
     sql.WHERE("id = #{id,jdbcType=INTEGER}");

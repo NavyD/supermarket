@@ -5,8 +5,8 @@ import cn.navyd.app.supermarket.base.AbstractSqlProvider;
 
 public class ProductSqlProvider extends AbstractSqlProvider<ProductDO> {
   private static final String[] COLUMNS = {"id, product_name, production_date, shelf_life, product_unit, specification, ",
-      "specification_unit, product_category_id, product_category_name, supplier_id, ",
-      "supplier_name, gmt_create, gmt_modified"};
+      "specification_unit, product_category_id, supplier_id, ",
+      "gmt_create, gmt_modified"};
   
   private static final String BASE_COLUMNS = getColumnsString(COLUMNS); 
 
@@ -53,16 +53,8 @@ public class ProductSqlProvider extends AbstractSqlProvider<ProductDO> {
         sql.VALUES("product_category_id", "#{productCategoryId,jdbcType=INTEGER}");
     }
     
-    if (bean.getProductCategoryName() != null) {
-        sql.VALUES("product_category_name", "#{productCategoryName,jdbcType=VARCHAR}");
-    }
-    
     if (bean.getSupplierId() != null) {
         sql.VALUES("supplier_id", "#{supplierId,jdbcType=INTEGER}");
-    }
-    
-    if (bean.getSupplierName() != null) {
-        sql.VALUES("supplier_name", "#{supplierName,jdbcType=VARCHAR}");
     }
     
     return sql.toString();
@@ -100,16 +92,8 @@ public class ProductSqlProvider extends AbstractSqlProvider<ProductDO> {
         sql.SET("product_category_id = #{productCategoryId,jdbcType=INTEGER}");
     }
     
-    if (bean.getProductCategoryName() != null) {
-        sql.SET("product_category_name = #{productCategoryName,jdbcType=VARCHAR}");
-    }
-    
     if (bean.getSupplierId() != null) {
         sql.SET("supplier_id = #{supplierId,jdbcType=INTEGER}");
-    }
-    
-    if (bean.getSupplierName() != null) {
-        sql.SET("supplier_name = #{supplierName,jdbcType=VARCHAR}");
     }
     
     sql.WHERE("id = #{id,jdbcType=INTEGER}");

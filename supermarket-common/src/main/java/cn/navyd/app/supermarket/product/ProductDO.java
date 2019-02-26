@@ -26,9 +26,5 @@ public class ProductDO extends BaseDO {
 
   private Integer productCategoryId;
 
-  private String productCategoryName;
-
   private Integer supplierId;
-
-  private String supplierName;
 }

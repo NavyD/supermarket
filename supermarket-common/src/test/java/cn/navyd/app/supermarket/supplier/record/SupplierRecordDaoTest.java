@@ -31,7 +31,6 @@ public class SupplierRecordDaoTest extends BaseDaoTest<SupplierRecordDO> {
     int productId = first.getProductId();
     var last = new SupplierRecordDO();
     last.setProductId(productId);
-    last.setProductName(first.getProductName());
     last.setSuppliedTime(LocalDate.parse("2018-07-19").atStartOfDay());
     last.setUnitPriceSupply(BigDecimal.valueOf(100.1).setScale(2));
     last.setUnitPriceReturn(BigDecimal.valueOf(90.1).setScale(2));
