@@ -363,10 +363,8 @@ create table product(
     specification_unit tinyint unsigned not null,
     -- 关联分类id
     product_category_id int unsigned not null,
-    product_category_name varchar(20) not null,
     -- 供应商
     supplier_id int unsigned not null,
-    supplier_name varchar(100) not null,
     gmt_create datetime not null default current_timestamp,
     gmt_modified datetime not null default current_timestamp on update current_timestamp
 );
@@ -401,7 +399,6 @@ create table shelved_product(
     -- 上架数量
     quantity int unsigned not null default 0,
     product_id int unsigned not null,
-    product_name varchar(100) not null,
     gmt_create datetime not null default current_timestamp,
     gmt_modified datetime not null default current_timestamp on update current_timestamp
 );
@@ -433,9 +430,7 @@ drop table if exists repository_item;
 create table repository_item(
     id int unsigned auto_increment primary key,
     product_id int unsigned not null,
-    product_name varchar(100) not null,
     repository_id int unsigned not null,
-    repository_name varchar(50) not null,
     quantity int unsigned not null default 0,
     -- 数量限制
     max_quantity int unsigned not null  default 65535,
@@ -503,7 +498,6 @@ create table supplier_record(
     unit_price_supply decimal(15, 2) unsigned not null,
     unit_price_return decimal(15, 2) unsigned not null,
     product_id int unsigned not null,
-    product_name varchar(100) not null,
     gmt_create datetime not null default current_timestamp,
     gmt_modified datetime not null default current_timestamp on update current_timestamp
 );
